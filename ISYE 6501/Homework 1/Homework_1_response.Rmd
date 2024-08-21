@@ -1,0 +1,66 @@
+---
+title: "Homework_1"
+author: "Claire Kraft"
+date: "2024-08-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 2.1
+Question:
+Describe a situation or problem from your job, everyday life, current events, etc., for which a classification model would be appropriate. List some (up to 5) predictors that you might use. 
+
+Answer:
+I got into rock climbing less than a year ago. I think a classification model would be very useful for detecting climbing routes. In climbing there are route setter who configure the climbing "problems" by strategically screwing various climbing holds on the wall. When route setting is complete the holds form a route or problem for the athlete to solve. It'd be neat if a classification model can scan the walls and determine the climbing style by looking at both the climbing holds and configuration of the holds. Some climbs are set up to force more dynamic moves and other climbs (called slabs) which force technical, precise, and static moves. The prediction would be labeling the climbs set by the route setter either as a dynamic climb or slab climb. 
+
+When not climbing I enjoy speed cubing (solving Rubik’s cube quickly). I just started competing this past year. A classification model could be beneficial to my training session. The model can detect my turns per second (TPS) and case recognition & prediction. For the classic 3x3 Rubik’s cube there are a few methods to getting the puzzle to a solved state. In this case we'll just consider the CFOP method which is: cross + first two layers + orientation of the last layer + permutation of the last layer. Simply put this method is much like baking a cake (layer by layer). As I'm solving i do not have to watch my hands as i manipulate the pieces instead i commit almost everything to muscle memory and visually scan the cube for patterns. Upon recognizing the patterns, I have to execute the most optimal algorithm to force the pieces into another pattern until the whole cube is solved. A classification model can learn the patterns, predict the best algorithms, and clock my TPS. Essentially a classification model could be doing what I'm doing in parallel and just compare my performance with itself, much like a chess engine that is computing alongside the chess player. A really top notch cuber will turn the cubes so fluidly and controllably to be able to scan patterns, predict, and execute without seeming to stop.
+
+
+## Question 2.2
+The files credit_card_data.txt (without headers) and credit_card_data-headers.txt (with headers) contain a dataset with 654 data points, 6 continuous and 4 binary predictor variables. It has anonymized credit card applications with a binary response variable (last column) indicating if the application was positive or negative. The dataset is the “Credit Approval Data Set” from the UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets/Credit+Approval) without the categorical variables and without data points that have missing values.
+Question:
+2.2.1. Using the support vector machine function ksvm contained in the R package kernlab, find a good classifier for this data. Show the equation of your classifier, and how well it classifies the data points in the full data set. (Don’t worry about test/validation data yet; we’ll cover that topic soon.)
+
+Answer:
+```{r credit}
+# call ksvm. Vanilladot is a simple linear kernel.
+model <- ksvm(data[,1:10],data[,11],type=”C-svc”,kernel=”vanilladot”,C=100,scaled=TRUE)
+# calculate a1…am
+a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
+a
+# calculate a0
+a0 <- –model@b
+a0
+# see what the model predicts
+pred
+```
+Question:
+2.2.2. You are welcome, but not required, to try other (nonlinear) kernels as well; we’re not covering them in this course, but they can sometimes be useful and might provide better predictions than vanilladot.
+
+Answer:
+```{r cars}
+summary(cars)
+```
+Question:
+2.2.3. Using the k-nearest-neighbors classification function kknn contained in the R kknn package, suggest a good value of k, and show how well it classifies that data points in the full data set. Don’t forget to scale the data (scale=TRUE in kknn).
+
+Answer
+```{r cars}
+summary(cars)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
