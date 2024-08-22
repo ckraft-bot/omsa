@@ -41,7 +41,7 @@ print("Count of total missing values: ")
 sum(is.na(credit))
 
 #------------------------- manipulating the data
-# convert txt to matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
+# convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
 credit_matrix <- data.matrix(credit)
 #credit_matrix
 
@@ -50,7 +50,7 @@ credit_matrix <- data.matrix(credit)
 library(kernlab)
 
 # call ksvm.  Vanilladot is a simple linear kernel. 
-model <- ksvm(data[,1:10],data[,11],type="C-svc",kernel="vanilladot",C=100,scaled=TRUE)                                            
+model <- ksvm(credit_matrix[,1:10],as.factor(credit_matrix[,11]),type="C-svc",kernel="vanilladot",C=100,scaled=TRUE)                                            
 
 # calculate a1…am
 a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
