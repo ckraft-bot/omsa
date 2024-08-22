@@ -45,10 +45,10 @@ sum(is.na(credit))
 #------------------------- manipulating the data
 # convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
 credit_matrix <- data.matrix(credit)
-#credit_matrix
+credit_matrix
 
 #------------------------- training the data
-#install.packages("kernlab")
+install.packages("kernlab")
 library(kernlab)
 
 # call ksvm.  Vanilladot is a simple linear kernel. 
