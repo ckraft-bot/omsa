@@ -24,8 +24,19 @@ Answer:
 ### Question 2.2.1
 **Using the support vector machine function ksvm contained in the R package kernlab, find a good classifier for this data. Show the equation of your classifier, and how well it classifies the data points in the full data set. (Don’t worry about test/validation data yet; we’ll cover that topic soon.)**
 
-Observations: 
+Observations and interpretations: 
 Using the linear kernel (vanilladot) to test various c values to find the "best" model. C controls the margin of error in classification. In the module 2 lectures Dr. Sokol explains how he increases the margins or threshold for classifying mushrooms. Despite wild mushrooms looking and smelling like the ones in the grocery store, all mushrooms are assumed to be inedible. The high threshold ensures no one is hurt from consuming the wrong mushroom. The bigger the C the less risk of misclassifications. The smaller the C the more chance of misclassification. 
+
+After the brute force method the most accurate rate is 86.39%. It's interesting that the accuracy is highest when the margins are lower and the accuracy decreases as the margin raises. This observation seems to go against the theory. Based on working with data scientists industry, I know that accuracy isn't the only metric for determining good or bad model. There are other metrics such as confusion matrix, F1 score, precision, etc to consider as well. 
+
+console outputs:
+C=1 the accuracy is 86.39144%
+
+equation
+           V1            V2            V3            V4            V5            V6            V7            V8            V9           V10 
+-0.0011026642 -0.0008980539 -0.0016074557  0.0029041700  1.0047363456 -0.0029852110 -0.0002035179 -0.0005504803 -0.0012519187  0.1064404601
+
+a0 intercept=0.08148382
 
 C=10 the accuracy is 86.39144%
 C=100 the accuracy is 86.39144%
@@ -33,7 +44,6 @@ C=500 the accuracy is 86.39144%
 C=1000 the accuracy is 86.23853%
 C=10000 the accuracy is 86.23853%
 
-After the brute force method the most accurate rate is 86.39%. It's interesting that the accuracy is highest when the margins are lower and the accuracy decreases as the margin raises. This observation seems to go against the theory. Based on working with data scientists industry, I know that accuracy isn't the only metric for determining good or bad model. There are other metrics such as confusion matrix, F1 score, precision, etc to consider as well. 
 
 Code:
 ```{r credit}
@@ -65,7 +75,7 @@ library(kernlab)
 # call ksvm(), Vanilladot is a simple linear kernel
 # train the model using the first 10 columns as features, 11th column is the target
 # parameter is c=x
-model <- ksvm(credit_matrix[,1:10],as.factor(credit_matrix[,11]),type="C-svc",kernel="vanilladot",C=10000,scaled=TRUE)                                            
+model <- ksvm(credit_matrix[,1:10],as.factor(credit_matrix[,11]),type="C-svc",kernel="vanilladot",C=1,scaled=TRUE)                                            
 
 # calculate a1…am
 a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
