@@ -259,19 +259,19 @@ K = 10 -> Accuracy: 0.852040816326531 = 85.20%
 Code:
 ```{r credit knn}
 #------------------------- getting a sense of the data
-# read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
+# Reading in the credit card data
 credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
 
 #------------------------- manipulating the data
-# convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
+# Converting to matrix
 credit_matrix <- data.matrix(credit)
 
-#------------------------- helper
+#------------------------- helper libraries
 library(class)
 library(caTools) 
-#------------------------- split data into train and test sets
+library(ggplot2)
 
-# Splitting the data into train and test sets with a 70-30 ratio
+#------------------------- split data into train and test sets
 set.seed(123)  # For reproducibility
 split <- sample.split(credit_matrix[, 11], SplitRatio = 0.7)
 
@@ -297,7 +297,7 @@ accuracies <- c()
 # Loop through values of K from 1 to 10
 for (K_value in 1:10) {
   
-  # Fitting knn model to training dataset
+  # Fitting KNN model to training dataset
   pred <- knn(train = train_scale,
               test = test_scale,
               cl = train_labels,
@@ -316,5 +316,24 @@ for (K_value in 1:10) {
 #------------------------- output final accuracies for each model
 print("Accuracies for each KNN model with varying K:")
 print(accuracies)
+
+#------------------------- plotting the results using ggplot2
+# Create a dataframe with K values and corresponding accuracies
+accuracy_data <- data.frame(
+  K = 1:10,
+  Accuracy = accuracies
+)
+
+# Explicitly printing the plot
+plot <- ggplot(accuracy_data, aes(x = K, y = Accuracy)) +
+  geom_line(color = "blue", size = 1) +    
+  geom_point(color = "red", size = 3) +    
+  labs(title = "KNN Accuracy for Different K Values",
+       x = "K Value",
+       y = "Accuracy") +
+  scale_y_continuous(labels = scales::percent) +   
+  theme_minimal()
+
+print(plot)  
 ```
 
