@@ -48,16 +48,16 @@ C=10000 the accuracy is 86.23853%
 Code:
 ```{r credit linear}
 #------------------------- getting a sense of the data
-# read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
+# Read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
 credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
 # View a summary of the dataset including basic statistics for each column
 summary(credit)
 
-# get dimension of df, row x column
+# Get dimension of df, row x column
 print("Size of df: ")
 dim(credit) 
 
-# look for null values
+# Look for null values
 print("Count of total missing values: ")
 sum(is.na(credit))
 
@@ -67,15 +67,13 @@ credit_matrix <- data.matrix(credit)
 head(credit_matrix)
 
 #------------------------- helper
-# install the kernlab package
 #install.packages("kernlab")
-# load kernlab library
 library(kernlab)
 
 #------------------------- training the data
-# call ksvm(), Vanilladot is a simple linear kernel
-# train the model using the first 10 columns as features, 11th column is the target
-# parameter is c=x
+# Call ksvm(), Vanilladot is a simple linear kernel
+# Train the model using the first 10 columns as features, 11th column is the target
+# Parameter is c=x
 model <- ksvm(credit_matrix[,1:10],as.factor(credit_matrix[,11]),type="C-svc",kernel="vanilladot",C=1,scaled=TRUE)                                            
 
 # calculate a1…am
@@ -89,15 +87,15 @@ print("a0 intercept: ")
 print(a0)
 
 #------------------------- predicting the data
-# see what the model predicts
+# See what the model predicts
 pred <- predict(model,credit_matrix[,1:10])
 print("Prediction: ")
 print(pred)
 
-# see what fraction of the model’s predictions match the actual classification
+# See what fraction of the model’s predictions match the actual classification
 accuracy <- sum(pred == credit_matrix[,11]) / nrow(credit_matrix)
 
-# accuracy of the model by comparing predictions to actual class labels
+# Accuracy of the model by comparing predictions to actual class labels
 print("Accuracy of linear model: ")
 print(accuracy)
 ```
@@ -107,7 +105,7 @@ print(accuracy)
 **You are welcome, but not required, to try other (nonlinear) kernels as well; we’re not covering them in this course, but they can sometimes be useful and might provide better predictions than vanilladot.**
 
 Observations and interpretations: 
-Looking at the [R documentation page](https://search.r-project.org/CRAN/refmans/kernlab/html/ksvm.html), polydot and rbf are nonlinear kernels. 
+Looking at the [R documentation page](https://search.r-project.org/CRAN/refmans/kernlab/html/ksvm.html), polynomial ```polydot``` and Radial basis function ```rbfdot``` are nonlinear kernels. The polynomial model seems to be the most consistent in accuracy scores with sub 1% difference. Radial basis function model seems to behave as expected, the bigger the C the less risk of misclassifications. The smaller the C the more chance of misclassification. The accuracy metric seems more appropriate as evaluation for the nonlinear classification models compared to the linear classification model.
 
 
 Console outputs for polydot:
@@ -123,40 +121,38 @@ C = 900 -> Accuracy: 0.995412844036697 = 99.54%
 C = 1000 -> Accuracy: 0.995412844036697 = 99.54%
 
 Console outputs for rbfdot:
-C = 100 -> Accuracy: 0.951070336391437 = 95.11%
+C = 100 -> Accuracy: 0.957186544342508 = 95.72%
 C = 200 -> Accuracy: 0.960244648318043 = 96.02%
-C = 300 -> Accuracy: 0.970948012232416 = 97.09%
-C = 400 -> Accuracy: 0.969418960244648 = 96.94%
-C = 500 -> Accuracy: 0.972477064220184 = 97.25%
-C = 600 -> Accuracy: 0.975535168195719 = 97.55%
-C = 700 -> Accuracy: 0.980122324159021 = 98.01%
-C = 800 -> Accuracy: 0.984709480122324 = 98.47%
-C = 900 -> Accuracy: 0.984709480122324 = 98.47%
-C = 1000 -> Accuracy: 0.984709480122324 = 98.47%
+C = 300 -> Accuracy: 0.969418960244648 = 96.94%
+C = 400 -> Accuracy: 0.972477064220184 = 97.25%
+C = 500 -> Accuracy: 0.977064220183486 = 97.71%
+C = 600 -> Accuracy: 0.978593272171254 = 97.86%
+C = 700 -> Accuracy: 0.981651376146789 = 98.17%
+C = 800 -> Accuracy: 0.981651376146789 = 98.17%
+C = 900 -> Accuracy: 0.981651376146789 = 98.17%
+C = 1000 -> Accuracy: 0.980122324159021 = 98.01%
 
 
 Code: 
 ```{r credit nonlinear-polydot}
 #------------------------- getting a sense of the data
-# read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
+# Read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
 credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
 
 # View a summary of the dataset including basic statistics for each column
 # summary(credit) didn't change my dataset so don't need to reprint summary
 
-# look for null values
+# Look for null values
 #print("Count of total missing values: ")
 #sum(is.na(credit)) didn't change my dataset so the missing values count have not changed
 
 #------------------------- manipulating the data
-# convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
+# Convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
 credit_matrix <- data.matrix(credit)
 #head(credit_matrix) didn't change my dataset so don't need to reprint summary
 
 #------------------------- helper
-# install the kernlab package
 #install.packages("kernlab")
-# load kernlab library
 library(kernlab)
 
 #------------------------- loop through 10 models with varying margins
@@ -190,18 +186,18 @@ print(accuracies)
 ```
 ```{r credit nonlinear-rbfdot}
 #------------------------- getting a sense of the data
-# read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
+# Read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
 credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
 
 # View a summary of the dataset including basic statistics for each column
 # summary(credit) didn't change my dataset so don't need to reprint summary
 
-# look for null values
+# Look for null values
 #print("Count of total missing values: ")
 #sum(is.na(credit)) didn't change my dataset so the missing values count have not changed
 
 #------------------------- manipulating the data
-# convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
+# Convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
 credit_matrix <- data.matrix(credit)
 #head(credit_matrix) didn't change my dataset so don't need to reprint summary
 
@@ -215,7 +211,7 @@ library(kernlab)
 # Define a vector to store accuracy for each model
 accuracies <- c()
 
-# Loop through values of C from 100 to 1000 in steps of 100
+# Loop through values of C from 100 to 1000 by 100
 for (C_value in seq(100, 1000, by=100)) {
   
   # Train an SVM model using the RBF kernel with varying C
@@ -244,20 +240,81 @@ print(accuracies)
 ### Question 2.2.3
 **Using the k-nearest-neighbors classification function kknn contained in the R kknn package, suggest a good value of k, and show how well it classifies that data points in the full data set. Don’t forget to scale the data (scale=TRUE in kknn).**
 
-Answer:
-```{r cars}
-summary(cars)
+Observations and interpretations: 
+
+
+
+Console outputs for knn:
+K = 1 -> Accuracy: 0.831632653061224 = 83.16%
+K = 2 -> Accuracy: 0.801020408163265 = 80.10%
+K = 3 -> Accuracy: 0.846938775510204 = 84.69%
+K = 4 -> Accuracy: 0.852040816326531 = 85.20%
+K = 5 -> Accuracy: 0.826530612244898 = 82.65%
+K = 6 -> Accuracy: 0.846938775510204 = 84.69%
+K = 7 -> Accuracy: 0.846938775510204 = 84.69%
+K = 8 -> Accuracy: 0.841836734693878 = 84.18%
+K = 9 -> Accuracy: 0.841836734693878 = 84.18%
+K = 10 -> Accuracy: 0.852040816326531 = 85.20%
+
+Code:
+```{r credit knn}
+#------------------------- getting a sense of the data
+# read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
+credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
+
+#------------------------- manipulating the data
+# convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
+credit_matrix <- data.matrix(credit)
+
+#------------------------- helper
+library(class)
+library(caTools) 
+#------------------------- split data into train and test sets
+
+# Splitting the data into train and test sets with a 70-30 ratio
+set.seed(123)  # For reproducibility
+split <- sample.split(credit_matrix[, 11], SplitRatio = 0.7)
+
+# Subset the credit_matrix into training and testing data
+train_data <- subset(credit_matrix, split == TRUE)
+test_data <- subset(credit_matrix, split == FALSE)
+
+# Separating the features and labels for train and test data
+train_features <- train_data[, 1:10]
+train_labels <- as.factor(train_data[, 11])
+
+test_features <- test_data[, 1:10]
+test_labels <- as.factor(test_data[, 11])
+
+# Feature Scaling 
+train_scale <- scale(train_features)
+test_scale <- scale(test_features)
+
+#------------------------- loop through different values of K
+# Define a vector to store accuracy for each K
+accuracies <- c()
+
+# Loop through values of K from 1 to 10
+for (K_value in 1:10) {
+  
+  # Fitting knn model to training dataset
+  pred <- knn(train = train_scale,
+              test = test_scale,
+              cl = train_labels,
+              k = K_value)
+  
+  # Calculate accuracy by comparing predictions to actual class labels
+  accuracy <- sum(pred == test_labels) / length(test_labels)
+  
+  # Print the K value and corresponding accuracy
+  print(paste("K =", K_value, "-> Accuracy:", accuracy))
+  
+  # Store the accuracy for each model
+  accuracies <- c(accuracies, accuracy)
+}
+
+#------------------------- output final accuracies for each model
+print("Accuracies for each KNN model with varying K:")
+print(accuracies)
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
