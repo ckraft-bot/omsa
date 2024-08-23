@@ -30,19 +30,19 @@ Using the linear kernel (vanilladot) to test various c values to find the "best"
 After the brute force method the most accurate rate is 86.39%. It's interesting that the accuracy is highest when the margins are lower and the accuracy decreases as the margin raises. This observation seems to go against the theory. Based on working with data scientists industry, I know that accuracy isn't the only metric for determining good or bad model. There are other metrics such as confusion matrix, F1 score, precision, etc to consider as well. 
 
 Console outputs:
-- C=1 the accuracy is 86.39144%
+C=1 the accuracy is 86.39144%
 
-- equation
+equation
            V1            V2            V3            V4            V5            V6            V7            V8            V9           V10 
 -0.0011026642 -0.0008980539 -0.0016074557  0.0029041700  1.0047363456 -0.0029852110 -0.0002035179 -0.0005504803 -0.0012519187  0.1064404601
 
-- a0 intercept=0.08148382
+a0 intercept=0.08148382
 
-- C=10 the accuracy is 86.39144%
-- C=100 the accuracy is 86.39144%
-- C=500 the accuracy is 86.39144%
-- C=1000 the accuracy is 86.23853%
-- C=10000 the accuracy is 86.23853%
+C=10 the accuracy is 86.39144%
+C=100 the accuracy is 86.39144%
+C=500 the accuracy is 86.39144%
+C=1000 the accuracy is 86.23853%
+C=10000 the accuracy is 86.23853%
 
 
 Code:
@@ -98,7 +98,7 @@ print(pred)
 accuracy <- sum(pred == credit_matrix[,11]) / nrow(credit_matrix)
 
 # accuracy of the model by comparing predictions to actual class labels
-print("Accuracy of model: ")
+print("Accuracy of linear model: ")
 print(accuracy)
 ```
 
@@ -111,16 +111,16 @@ Looking at the [R documentation page](https://search.r-project.org/CRAN/refmans/
 
 
 Console outputs for polydot:
-- C = 100 -> Accuracy: 0.990825688073395 = 99.08%
-- C = 200 -> Accuracy: 0.99388379204893 = 99.39%
-- C = 300 -> Accuracy: 0.99388379204893 = 99.39%
-- C = 400 -> Accuracy: 0.995412844036697 = 99.54%
-- C = 500 -> Accuracy: 0.995412844036697 = 99.54%
-- C = 600 -> Accuracy: 0.995412844036697 = 99.54%
-- C = 700 -> Accuracy: 0.99388379204893 = 99.39%
-- C = 800 -> Accuracy: 0.995412844036697 = 99.54%
-- C = 900 -> Accuracy: 0.995412844036697 = 99.54%
-- C = 1000 -> Accuracy: 0.995412844036697 = 99.54%
+C = 100 -> Accuracy: 0.990825688073395 = 99.08%
+C = 200 -> Accuracy: 0.99388379204893 = 99.39%
+C = 300 -> Accuracy: 0.99388379204893 = 99.39%
+C = 400 -> Accuracy: 0.995412844036697 = 99.54%
+C = 500 -> Accuracy: 0.995412844036697 = 99.54%
+C = 600 -> Accuracy: 0.995412844036697 = 99.54%
+C = 700 -> Accuracy: 0.99388379204893 = 99.39%
+C = 800 -> Accuracy: 0.995412844036697 = 99.54%
+C = 900 -> Accuracy: 0.995412844036697 = 99.54%
+C = 1000 -> Accuracy: 0.995412844036697 = 99.54%
 
 Console outputs for rbfdot:
 C = 100 -> Accuracy: 0.951070336391437 = 95.11%
@@ -185,7 +185,7 @@ for (C_value in seq(100, 1000, by=100)) {
 }
 
 #------------------------- output final accuracies for each model
-print("Accuracies for each model with varying margins:")
+print("Accuracies for each polynomial model with varying margins:")
 print(accuracies)
 ```
 ```{r credit nonlinear-rbfdot}
@@ -237,7 +237,7 @@ for (C_value in seq(100, 1000, by=100)) {
 }
 
 #------------------------- output final accuracies for each model
-print("Accuracies for each model with varying margins:")
+print("Accuracies for each radial model with varying margins:")
 print(accuracies)
 ```
 
