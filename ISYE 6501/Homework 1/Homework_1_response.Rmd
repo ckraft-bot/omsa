@@ -29,24 +29,24 @@ Using the linear kernel (vanilladot) to test various c values to find the "best"
 
 After the brute force method the most accurate rate is 86.39%. It's interesting that the accuracy is highest when the margins are lower and the accuracy decreases as the margin raises. This observation seems to go against the theory. Based on working with data scientists industry, I know that accuracy isn't the only metric for determining good or bad model. There are other metrics such as confusion matrix, F1 score, precision, etc to consider as well. 
 
-console outputs:
-C=1 the accuracy is 86.39144%
+Console outputs:
+- C=1 the accuracy is 86.39144%
 
-equation
+- equation
            V1            V2            V3            V4            V5            V6            V7            V8            V9           V10 
 -0.0011026642 -0.0008980539 -0.0016074557  0.0029041700  1.0047363456 -0.0029852110 -0.0002035179 -0.0005504803 -0.0012519187  0.1064404601
 
-a0 intercept=0.08148382
+- a0 intercept=0.08148382
 
-C=10 the accuracy is 86.39144%
-C=100 the accuracy is 86.39144%
-C=500 the accuracy is 86.39144%
-C=1000 the accuracy is 86.23853%
-C=10000 the accuracy is 86.23853%
+- C=10 the accuracy is 86.39144%
+- C=100 the accuracy is 86.39144%
+- C=500 the accuracy is 86.39144%
+- C=1000 the accuracy is 86.23853%
+- C=10000 the accuracy is 86.23853%
 
 
 Code:
-```{r credit}
+```{r credit linear}
 #------------------------- getting a sense of the data
 # read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
 credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
@@ -54,6 +54,7 @@ credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 650
 summary(credit)
 
 # get dimension of df, row x column
+print("Size of df: ")
 dim(credit) 
 
 # look for null values
@@ -81,6 +82,7 @@ model <- ksvm(credit_matrix[,1:10],as.factor(credit_matrix[,11]),type="C-svc",ke
 a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
 print("Equation: ")
 print(a)
+
 # calculate a0
 a0 <- -model@b
 print("a0 intercept: ")
@@ -104,13 +106,141 @@ print(accuracy)
 ### 2.2.2
 **You are welcome, but not required, to try other (nonlinear) kernels as well; we’re not covering them in this course, but they can sometimes be useful and might provide better predictions than vanilladot.**
 
-Answer:
-other packages for svm types://www.rdocumentation.org/packages/kernlab/versions/0.9-32/topics/ksvm
+Observations and interpretations: 
+Looking at the [R documentation page](https://search.r-project.org/CRAN/refmans/kernlab/html/ksvm.html), polydot and rbf are nonlinear kernels. 
+
+
+Console outputs for polydot:
+- C = 100 -> Accuracy: 0.990825688073395 = 99.08%
+- C = 200 -> Accuracy: 0.99388379204893 = 99.39%
+- C = 300 -> Accuracy: 0.99388379204893 = 99.39%
+- C = 400 -> Accuracy: 0.995412844036697 = 99.54%
+- C = 500 -> Accuracy: 0.995412844036697 = 99.54%
+- C = 600 -> Accuracy: 0.995412844036697 = 99.54%
+- C = 700 -> Accuracy: 0.99388379204893 = 99.39%
+- C = 800 -> Accuracy: 0.995412844036697 = 99.54%
+- C = 900 -> Accuracy: 0.995412844036697 = 99.54%
+- C = 1000 -> Accuracy: 0.995412844036697 = 99.54%
+
+Console outputs for rbfdot:
+C = 100 -> Accuracy: 0.951070336391437 = 95.11%
+C = 200 -> Accuracy: 0.960244648318043 = 96.02%
+C = 300 -> Accuracy: 0.970948012232416 = 97.09%
+C = 400 -> Accuracy: 0.969418960244648 = 96.94%
+C = 500 -> Accuracy: 0.972477064220184 = 97.25%
+C = 600 -> Accuracy: 0.975535168195719 = 97.55%
+C = 700 -> Accuracy: 0.980122324159021 = 98.01%
+C = 800 -> Accuracy: 0.984709480122324 = 98.47%
+C = 900 -> Accuracy: 0.984709480122324 = 98.47%
+C = 1000 -> Accuracy: 0.984709480122324 = 98.47%
+
 
 Code: 
-```{r other packages}
-# let's loop through 10 models with the margins ranging from 100 to 1000 in intervals by 100
+```{r credit nonlinear-polydot}
+#------------------------- getting a sense of the data
+# read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
+credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
+
+# View a summary of the dataset including basic statistics for each column
+# summary(credit) didn't change my dataset so don't need to reprint summary
+
+# look for null values
+#print("Count of total missing values: ")
+#sum(is.na(credit)) didn't change my dataset so the missing values count have not changed
+
+#------------------------- manipulating the data
+# convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
+credit_matrix <- data.matrix(credit)
+#head(credit_matrix) didn't change my dataset so don't need to reprint summary
+
+#------------------------- helper
+# install the kernlab package
+#install.packages("kernlab")
+# load kernlab library
+library(kernlab)
+
+#------------------------- loop through 10 models with varying margins
+# Define a vector to store accuracy for each model
+accuracies <- c()
+
+# Loop through values of C from 100 to 1000 in steps of 100
+for (C_value in seq(100, 1000, by=100)) {
+  
+  # Train an SVM model using the polydot kernel with varying C
+  model <- ksvm(credit_matrix[,1:10], as.factor(credit_matrix[,11]), 
+                type="C-svc", kernel="polydot", 
+                kpar=list(degree=3), C=C_value, scaled=TRUE)
+  
+  # Predict the data using the trained model
+  pred <- predict(model, credit_matrix[,1:10])
+  
+  # Calculate accuracy of the model by comparing predictions to actual class labels
+  accuracy <- sum(pred == credit_matrix[,11]) / nrow(credit_matrix)
+  
+  # Print the C value and corresponding accuracy
+  print(paste("C =", C_value, "-> Accuracy:", accuracy))
+  
+  # Store the accuracy for each model
+  accuracies <- c(accuracies, accuracy)
+}
+
+#------------------------- output final accuracies for each model
+print("Accuracies for each model with varying margins:")
+print(accuracies)
 ```
+```{r credit nonlinear-rbfdot}
+#------------------------- getting a sense of the data
+# read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
+credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
+
+# View a summary of the dataset including basic statistics for each column
+# summary(credit) didn't change my dataset so don't need to reprint summary
+
+# look for null values
+#print("Count of total missing values: ")
+#sum(is.na(credit)) didn't change my dataset so the missing values count have not changed
+
+#------------------------- manipulating the data
+# convert .txt > df > matrix (source: https://stackoverflow.com/questions/46518838/how-to-convert-table-to-matrix-in-r)
+credit_matrix <- data.matrix(credit)
+#head(credit_matrix) didn't change my dataset so don't need to reprint summary
+
+#------------------------- helper
+# install the kernlab package
+#install.packages("kernlab")
+# load kernlab library
+library(kernlab)
+
+#------------------------- loop through 10 models with varying margins
+# Define a vector to store accuracy for each model
+accuracies <- c()
+
+# Loop through values of C from 100 to 1000 in steps of 100
+for (C_value in seq(100, 1000, by=100)) {
+  
+  # Train an SVM model using the RBF kernel with varying C
+  model <- ksvm(credit_matrix[,1:10], as.factor(credit_matrix[,11]), 
+                type="C-svc", kernel="rbfdot", 
+                C=C_value, scaled=TRUE)
+  
+  # Predict the data using the trained model
+  pred <- predict(model, credit_matrix[,1:10])
+  
+  # Calculate accuracy of the model by comparing predictions to actual class labels
+  accuracy <- sum(pred == credit_matrix[,11]) / nrow(credit_matrix)
+  
+  # Print the C value and corresponding accuracy
+  print(paste("C =", C_value, "-> Accuracy:", accuracy))
+  
+  # Store the accuracy for each model
+  accuracies <- c(accuracies, accuracy)
+}
+
+#------------------------- output final accuracies for each model
+print("Accuracies for each model with varying margins:")
+print(accuracies)
+```
+
 ### Question 2.2.3
 **Using the k-nearest-neighbors classification function kknn contained in the R kknn package, suggest a good value of k, and show how well it classifies that data points in the full data set. Don’t forget to scale the data (scale=TRUE in kknn).**
 
