@@ -241,15 +241,15 @@ print(accuracies)
 **Using the k-nearest-neighbors classification function kknn contained in the R kknn package, suggest a good value of k, and show how well it classifies that data points in the full data set. Don’t forget to scale the data (scale=TRUE in kknn).**
 
 Observations and interpretations: 
-In the scaled knn model K = 36 has the highest accuracy of 86.73% while the unscaled one the k = 29 has the highest accuracy of 70.41%. It seems that the unscaled models at their best are far from the performance of the scaled models.
+In the scaled knn model the highest accuracy is 86.73% while the unscaled one has the highest accuracy of 6972%. It seems that the unscaled model at its best under performs compared to the scaled model.
 
 Console outputs for knn _scaled_:
-[1] "Max accuracy for scaled KNN model:"
-[1] 0.8673469
+[1] "Max accuracy for leave-one-out cross-validation:"
+[1] 0.853211
 
 Console outputs for knn _unscaled_:
-[1] "Max accuracy for unscaled KNN model:"
-[1] 0.7040816
+[1] "Max accuracy for leave-one-out cross-validation (LOO-CV):"
+[1] 0.6972477
 
 Code:
 ```{r credit knn scaled}
@@ -263,44 +263,45 @@ credit_matrix <- data.matrix(credit)
 
 #------------------------- helper libraries
 library(class)
-library(caTools) 
 library(ggplot2)
 
-#------------------------- split data into train and test sets
-set.seed(123)  # For reproducibility
-split <- sample.split(credit_matrix[, 11], SplitRatio = 0.7)
-
-# Subset the credit_matrix into training and testing data
-train_data <- subset(credit_matrix, split == TRUE)
-test_data <- subset(credit_matrix, split == FALSE)
-
-# Separating the features and labels for train and test data
-train_features <- train_data[, 1:10]
-train_labels <- as.factor(train_data[, 11])
-
-test_features <- test_data[, 1:10]
-test_labels <- as.factor(test_data[, 11])
-
-# Feature Scaling 
-train_scale <- scale(train_features)
-test_scale <- scale(test_features)
-
-#------------------------- loop through different values of K
-# Define a vector to store accuracy for each K
-accuracies <- c()
+#------------------------- leave-one-out cross-validation with scaling
+accuracies <- c()  # Vector to store accuracy for different K values
 
 # Loop through values of K from 1 to 50
 for (K_value in 1:50) {
+  correct_predictions <- 0  # Count correct predictions
   
-  # Fitting KNN model to training dataset (source: https://www.rdocumentation.org/packages/class/versions/7.3-22/topics/knn)
-  pred <- knn(train = train_scale, # matrix of training set cases
-              test = test_scale, # matrix of test set cases
-              cl = train_labels, # factor of true classifications of training set
-              k = K_value, # number of neighbors considered
-              prob = TRUE) # If this is true, the proportion of the votes for the winning class are returned as attribute 'prob'
+  # Loop through each row for leave-one-out cross-validation
+  for (i in 1:nrow(credit_matrix)) {
+    
+    # Exclude the i-th data point
+    train_data <- credit_matrix[-i, 1:10]  # All but the i-th row for training
+    test_data <- credit_matrix[i, 1:10, drop = FALSE]  # Only the i-th row for testing
+    
+    # Scale training data (excluding the i-th point)
+    scaled_train_data <- scale(train_data)
+    
+    # Scale the test data using the same mean and standard deviation as the training data
+    scaled_test_data <- scale(test_data, center = attr(scaled_train_data, "scaled:center"), scale = attr(scaled_train_data, "scaled:scale"))
+    
+    train_labels <- as.factor(credit_matrix[-i, 11])  # Training labels excluding the i-th label
+    test_label <- as.factor(credit_matrix[i, 11])  # The true label of the i-th data point
+    
+    # Fit the KNN model
+    pred <- knn(train = scaled_train_data, 
+                test = scaled_test_data, 
+                cl = train_labels, 
+                k = K_value)
+    
+    # Check if the prediction matches the true label
+    if (pred == test_label) {
+      correct_predictions <- correct_predictions + 1
+    }
+  }
   
-  # Calculate accuracy by comparing predictions to actual class labels
-  accuracy <- sum(pred == test_labels) / length(test_labels)
+  # Calculate accuracy for this K value
+  accuracy <- correct_predictions / nrow(credit_matrix)
   
   # Print the K value and corresponding accuracy
   print(paste("K =", K_value, "-> Accuracy:", accuracy))
@@ -312,7 +313,7 @@ for (K_value in 1:50) {
 #------------------------- output final accuracies for each model
 print("Accuracies for each KNN model with varying K:")
 print(accuracies)
-print("Max accuracy for scaled KNN model:")
+print("Max accuracy for leave-one-out cross-validation:")
 print(max(accuracies))
 
 #------------------------- plotting the results using ggplot2
@@ -326,13 +327,13 @@ accuracy_data <- data.frame(
 plot <- ggplot(accuracy_data, aes(x = K, y = Accuracy)) +
   geom_line(color = "blue", size = 1) +    
   geom_point(color = "red", size = 3) +    
-  labs(title = "KNN Accuracy for Different K Values",
+  labs(title = "KNN Accuracy for Different K Values (LOO-CV, Scaled Data)",
        x = "K Value",
        y = "Accuracy") +
   scale_y_continuous(labels = scales::percent) +   
   theme_minimal()
 
-print(plot)  
+print(plot)
 ```
 ```{r credit knn unscaled}
 #------------------------- getting a sense of the data
@@ -345,40 +346,40 @@ credit_matrix <- data.matrix(credit)
 
 #------------------------- helper libraries
 library(class)
-library(caTools) 
 library(ggplot2)
 
-#------------------------- split data into train and test sets
-set.seed(123)  # For reproducibility
-split <- sample.split(credit_matrix[, 11], SplitRatio = 0.7)
-
-# Subset the credit_matrix into training and testing data
-train_data <- subset(credit_matrix, split == TRUE)
-test_data <- subset(credit_matrix, split == FALSE)
-
-# Separating the features and labels for train and test data
-train_features <- train_data[, 1:10]
-train_labels <- as.factor(train_data[, 11])
-
-test_features <- test_data[, 1:10]
-test_labels <- as.factor(test_data[, 11])
-
-#------------------------- loop through different values of K
+#------------------------- leave-one-out cross-validation (LOO-CV)
 # Define a vector to store accuracy for each K
 accuracies <- c()
 
 # Loop through values of K from 1 to 50
 for (K_value in 1:50) {
+  correct_predictions <- 0  # Count correct predictions
   
-  # Fitting KNN model to training dataset without scaling
-  pred <- knn(train = train_features,  # Using unscaled training data
-              test = test_features,    # Using unscaled test data
-              cl = train_labels,       # True classifications of training set
-              k = K_value,             # Number of neighbors considered
-              prob = TRUE)             # Proportion of votes for the winning class
+  # Perform Leave-One-Out Cross-Validation
+  for (i in 1:nrow(credit_matrix)) {
+    
+    # Exclude the i-th data point for training
+    train_features <- credit_matrix[-i, 1:10]  # All but the i-th row for training
+    test_features <- credit_matrix[i, 1:10, drop = FALSE]  # Only the i-th row for testing
+    
+    train_labels <- as.factor(credit_matrix[-i, 11])  # Labels excluding the i-th label
+    test_label <- as.factor(credit_matrix[i, 11])  # True label for the i-th data point
+    
+    # Fit the KNN model without scaling (unscaled data)
+    pred <- knn(train = train_features, 
+                test = test_features, 
+                cl = train_labels, 
+                k = K_value)
+    
+    # Check if the prediction matches the true label
+    if (pred == test_label) {
+      correct_predictions <- correct_predictions + 1
+    }
+  }
   
-  # Calculate accuracy by comparing predictions to actual class labels
-  accuracy <- sum(pred == test_labels) / length(test_labels)
+  # Calculate accuracy for this K value
+  accuracy <- correct_predictions / nrow(credit_matrix)
   
   # Print the K value and corresponding accuracy
   print(paste("K =", K_value, "-> Accuracy:", accuracy))
@@ -390,7 +391,7 @@ for (K_value in 1:50) {
 #------------------------- output final accuracies for each model
 print("Accuracies for each KNN model with varying K:")
 print(accuracies)
-print("Max accuracy for unscaled KNN model:")
+print("Max accuracy for leave-one-out cross-validation (LOO-CV):")
 print(max(accuracies))
 
 #------------------------- plotting the results using ggplot2
@@ -404,12 +405,11 @@ accuracy_data <- data.frame(
 plot <- ggplot(accuracy_data, aes(x = K, y = Accuracy)) +
   geom_line(color = "blue", size = 1) +    
   geom_point(color = "red", size = 3) +    
-  labs(title = "KNN Accuracy for Different K Values (Unscaled Data)",
+  labs(title = "KNN Accuracy for Different K Values (LOO-CV, Unscaled Data)",
        x = "K Value",
        y = "Accuracy") +
   scale_y_continuous(labels = scales::percent) +   
   theme_minimal()
 
 print(plot)
-
 ```
