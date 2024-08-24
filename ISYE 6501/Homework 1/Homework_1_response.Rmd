@@ -12,11 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Question 2.1
 **Describe a situation or problem from your job, everyday life, current events, etc., for which a classification model would be appropriate. List some (up to 5) predictors that you might use.**
 
-Answer:
 - I got into rock climbing less than a year ago. I think a classification model would be very useful for detecting climbing routes. In climbing there are route setter who configure the climbing "problems" by strategically screwing various climbing holds on the wall. It'd be neat if a classification model can scan the walls and determine the climbing style by looking at both the climbing holds and configuration of the holds. Some climbs are set up to force more dynamic moves and other climbs (called "slabs") which force technical, precise, and static moves. The prediction model can label the climbing routes or problems as either a dynamic climb or slab climb. 
 
 - When not climbing I enjoy speed cubing (solving Rubik’s cube quickly). I just started competing this past year. A classification model could be beneficial to my training session. The model can detect my turns per second and case recognition & prediction. For the classic 3x3 Rubik’s cube there are a few methods to getting the puzzle to a solved state. In this case we'll just consider the CFOP method which is: cross + first two layers + orientation of the last layer + permutation of the last layer. Simply put this method is much like baking a cake (layer by layer). As I'm solving i do not have to watch my hands as i manipulate the pieces instead i commit almost everything to muscle memory and visually scan the cube for patterns. Upon recognizing the patterns, I have to execute the most optimal algorithm to reach another another pattern repeatedly until the whole cube is solved. A classification model can learn the patterns, predict the best algorithms, and clock my turns per second. Essentially a classification model could be doing what I'm doing in parallel and just compare my performance with itself, much like a chess engine that is computing alongside the chess player. A really top notch cuber will turn the cubes so fluidly and controllably to be able to scan patterns, predict, and execute without seeming to stop.
-
 
 ## Question 2.2
 **The files credit_card_data.txt (without headers) and credit_card_data-headers.txt (with headers) contain a dataset with 654 data points, 6 continuous and 4 binary predictor variables.  It has anonymized credit card applications with a binary response variable (last column) indicating if the application was positive or negative. The dataset is the “Credit Approval Data Set” from the UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets/Credit+Approval) without the categorical variables and without data points that have missing values.**
@@ -24,28 +22,9 @@ Answer:
 ### Question 2.2.1
 **Using the support vector machine function ksvm contained in the R package kernlab, find a good classifier for this data. Show the equation of your classifier, and how well it classifies the data points in the full data set. (Don’t worry about test/validation data yet; we’ll cover that topic soon.)**
 
-Observations and interpretations: 
 Using the linear kernel (vanilladot) to test various c values to find the "best" model. C controls the margin of error in classification. In the module 2 lectures Dr. Sokol explains how he increases the margins or threshold for classifying mushrooms. Despite wild mushrooms looking and smelling like the ones in the grocery store, all mushrooms are assumed to be inedible. The high threshold ensures no one is hurt from consuming the wrong mushroom. The bigger the C the less risk of misclassifications. The smaller the C the more chance of misclassification. 
 
 After the brute force method the most accurate rate is 86.39%. It's interesting that the accuracy is highest when the margins are lower and the accuracy decreases as the margin raises. This observation seems to go against the theory. Based on working with data scientists industry, I know that accuracy isn't the only metric for determining good or bad model. There are other metrics such as confusion matrix, F1 score, precision, etc to consider as well. 
-
-Console outputs:
-C=1 the accuracy is 86.39144%
-
-equation
-           V1            V2            V3            V4            V5            V6            V7            V8            V9           V10 
--0.0011026642 -0.0008980539 -0.0016074557  0.0029041700  1.0047363456 -0.0029852110 -0.0002035179 -0.0005504803 -0.0012519187  0.1064404601
-
-a0 intercept=0.08148382
-
-C=10 the accuracy is 86.39144%
-C=100 the accuracy is 86.39144%
-C=500 the accuracy is 86.39144%
-C=1000 the accuracy is 86.23853%
-C=10000 the accuracy is 86.23853%
-
-
-Code:
 ```{r credit linear}
 #------------------------- getting a sense of the data
 # Read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
@@ -100,40 +79,11 @@ print("Accuracy of linear model: ")
 print(accuracy)
 ```
 
-
 ### 2.2.2
 **You are welcome, but not required, to try other (nonlinear) kernels as well; we’re not covering them in this course, but they can sometimes be useful and might provide better predictions than vanilladot.**
 
-Observations and interpretations: 
 Looking at the [R documentation page](https://search.r-project.org/CRAN/refmans/kernlab/html/ksvm.html), polynomial ```polydot``` and Radial basis function ```rbfdot``` are nonlinear kernels. The polynomial model seems to be the most consistent in accuracy scores with sub 1% difference. Radial basis function model seems to behave as expected, the bigger the C the less risk of misclassifications. The smaller the C the more chance of misclassification. The accuracy metric seems more appropriate as evaluation for the nonlinear classification models compared to the linear classification model.
 
-
-Console outputs for polydot:
-C = 100 -> Accuracy: 0.990825688073395 = 99.08%
-C = 200 -> Accuracy: 0.99388379204893 = 99.39%
-C = 300 -> Accuracy: 0.99388379204893 = 99.39%
-C = 400 -> Accuracy: 0.995412844036697 = 99.54%
-C = 500 -> Accuracy: 0.995412844036697 = 99.54%
-C = 600 -> Accuracy: 0.995412844036697 = 99.54%
-C = 700 -> Accuracy: 0.99388379204893 = 99.39%
-C = 800 -> Accuracy: 0.995412844036697 = 99.54%
-C = 900 -> Accuracy: 0.995412844036697 = 99.54%
-C = 1000 -> Accuracy: 0.995412844036697 = 99.54%
-
-Console outputs for rbfdot:
-C = 100 -> Accuracy: 0.957186544342508 = 95.72%
-C = 200 -> Accuracy: 0.960244648318043 = 96.02%
-C = 300 -> Accuracy: 0.969418960244648 = 96.94%
-C = 400 -> Accuracy: 0.972477064220184 = 97.25%
-C = 500 -> Accuracy: 0.977064220183486 = 97.71%
-C = 600 -> Accuracy: 0.978593272171254 = 97.86%
-C = 700 -> Accuracy: 0.981651376146789 = 98.17%
-C = 800 -> Accuracy: 0.981651376146789 = 98.17%
-C = 900 -> Accuracy: 0.981651376146789 = 98.17%
-C = 1000 -> Accuracy: 0.980122324159021 = 98.01%
-
-
-Code: 
 ```{r credit nonlinear-polydot}
 #------------------------- getting a sense of the data
 # Read in credit_card_data data (source: https://teacherscollege.screenstepslive.com/a/1126998-import-data-into-r-txt-files-in-r-studio)
@@ -240,18 +190,8 @@ print(accuracies)
 ### Question 2.2.3
 **Using the k-nearest-neighbors classification function kknn contained in the R kknn package, suggest a good value of k, and show how well it classifies that data points in the full data set. Don’t forget to scale the data (scale=TRUE in kknn).**
 
-Observations and interpretations: 
 In the scaled knn model the highest accuracy is 86.73% while the unscaled one has the highest accuracy of 6972%. It seems that the unscaled model at its best under performs compared to the scaled model.
 
-Console outputs for knn _scaled_:
-[1] "Max accuracy for leave-one-out cross-validation:"
-[1] 0.853211
-
-Console outputs for knn _unscaled_:
-[1] "Max accuracy for leave-one-out cross-validation (LOO-CV):"
-[1] 0.6972477
-
-Code:
 ```{r credit knn scaled}
 #------------------------- getting a sense of the data
 # Reading in the credit card data
