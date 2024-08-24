@@ -241,23 +241,18 @@ print(accuracies)
 **Using the k-nearest-neighbors classification function kknn contained in the R kknn package, suggest a good value of k, and show how well it classifies that data points in the full data set. Don’t forget to scale the data (scale=TRUE in kknn).**
 
 Observations and interpretations: 
+In the scaled knn model K = 36 has the highest accuracy of 86.73% while the unscaled one the k = 29 has the highest accuracy of 70.41%. It seems that the unscaled models at their best are far from the performance of the scaled models.
 
+Console outputs for knn _scaled_:
+[1] "Max accuracy for scaled KNN model:"
+[1] 0.8673469
 
-
-Console outputs for knn:
-K = 1 -> Accuracy: 0.831632653061224 = 83.16%
-K = 2 -> Accuracy: 0.801020408163265 = 80.10%
-K = 3 -> Accuracy: 0.846938775510204 = 84.69%
-K = 4 -> Accuracy: 0.852040816326531 = 85.20%
-K = 5 -> Accuracy: 0.826530612244898 = 82.65%
-K = 6 -> Accuracy: 0.846938775510204 = 84.69%
-K = 7 -> Accuracy: 0.846938775510204 = 84.69%
-K = 8 -> Accuracy: 0.841836734693878 = 84.18%
-K = 9 -> Accuracy: 0.841836734693878 = 84.18%
-K = 10 -> Accuracy: 0.852040816326531 = 85.20%
+Console outputs for knn _unscaled_:
+[1] "Max accuracy for unscaled KNN model:"
+[1] 0.7040816
 
 Code:
-```{r credit knn}
+```{r credit knn scaled}
 #------------------------- getting a sense of the data
 # Reading in the credit card data
 credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
@@ -294,14 +289,15 @@ test_scale <- scale(test_features)
 # Define a vector to store accuracy for each K
 accuracies <- c()
 
-# Loop through values of K from 1 to 10
-for (K_value in 1:10) {
+# Loop through values of K from 1 to 50
+for (K_value in 1:50) {
   
-  # Fitting KNN model to training dataset
-  pred <- knn(train = train_scale,
-              test = test_scale,
-              cl = train_labels,
-              k = K_value)
+  # Fitting KNN model to training dataset (source: https://www.rdocumentation.org/packages/class/versions/7.3-22/topics/knn)
+  pred <- knn(train = train_scale, # matrix of training set cases
+              test = test_scale, # matrix of test set cases
+              cl = train_labels, # factor of true classifications of training set
+              k = K_value, # number of neighbors considered
+              prob = TRUE) # If this is true, the proportion of the votes for the winning class are returned as attribute 'prob'
   
   # Calculate accuracy by comparing predictions to actual class labels
   accuracy <- sum(pred == test_labels) / length(test_labels)
@@ -316,11 +312,13 @@ for (K_value in 1:10) {
 #------------------------- output final accuracies for each model
 print("Accuracies for each KNN model with varying K:")
 print(accuracies)
+print("Max accuracy for scaled KNN model:")
+print(max(accuracies))
 
 #------------------------- plotting the results using ggplot2
 # Create a dataframe with K values and corresponding accuracies
 accuracy_data <- data.frame(
-  K = 1:10,
+  K = 1:50,
   Accuracy = accuracies
 )
 
@@ -336,4 +334,82 @@ plot <- ggplot(accuracy_data, aes(x = K, y = Accuracy)) +
 
 print(plot)  
 ```
+```{r credit knn unscaled}
+#------------------------- getting a sense of the data
+# Reading in the credit card data
+credit <- read.table("C://Users//Clair//OneDrive//Documents//Fall 2024//IYSE 6501//hw1//data 2.2//credit_card_data.txt", sep="\t", header=FALSE)
 
+#------------------------- manipulating the data
+# Converting to matrix
+credit_matrix <- data.matrix(credit)
+
+#------------------------- helper libraries
+library(class)
+library(caTools) 
+library(ggplot2)
+
+#------------------------- split data into train and test sets
+set.seed(123)  # For reproducibility
+split <- sample.split(credit_matrix[, 11], SplitRatio = 0.7)
+
+# Subset the credit_matrix into training and testing data
+train_data <- subset(credit_matrix, split == TRUE)
+test_data <- subset(credit_matrix, split == FALSE)
+
+# Separating the features and labels for train and test data
+train_features <- train_data[, 1:10]
+train_labels <- as.factor(train_data[, 11])
+
+test_features <- test_data[, 1:10]
+test_labels <- as.factor(test_data[, 11])
+
+#------------------------- loop through different values of K
+# Define a vector to store accuracy for each K
+accuracies <- c()
+
+# Loop through values of K from 1 to 50
+for (K_value in 1:50) {
+  
+  # Fitting KNN model to training dataset without scaling
+  pred <- knn(train = train_features,  # Using unscaled training data
+              test = test_features,    # Using unscaled test data
+              cl = train_labels,       # True classifications of training set
+              k = K_value,             # Number of neighbors considered
+              prob = TRUE)             # Proportion of votes for the winning class
+  
+  # Calculate accuracy by comparing predictions to actual class labels
+  accuracy <- sum(pred == test_labels) / length(test_labels)
+  
+  # Print the K value and corresponding accuracy
+  print(paste("K =", K_value, "-> Accuracy:", accuracy))
+  
+  # Store the accuracy for each model
+  accuracies <- c(accuracies, accuracy)
+}
+
+#------------------------- output final accuracies for each model
+print("Accuracies for each KNN model with varying K:")
+print(accuracies)
+print("Max accuracy for unscaled KNN model:")
+print(max(accuracies))
+
+#------------------------- plotting the results using ggplot2
+# Create a dataframe with K values and corresponding accuracies
+accuracy_data <- data.frame(
+  K = 1:50,
+  Accuracy = accuracies
+)
+
+# Explicitly printing the plot
+plot <- ggplot(accuracy_data, aes(x = K, y = Accuracy)) +
+  geom_line(color = "blue", size = 1) +    
+  geom_point(color = "red", size = 3) +    
+  labs(title = "KNN Accuracy for Different K Values (Unscaled Data)",
+       x = "K Value",
+       y = "Accuracy") +
+  scale_y_continuous(labels = scales::percent) +   
+  theme_minimal()
+
+print(plot)
+
+```
