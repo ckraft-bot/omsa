@@ -190,7 +190,7 @@ print(accuracies)
 ### Question 2.2.3
 **Using the k-nearest-neighbors classification function kknn contained in the R kknn package, suggest a good value of k, and show how well it classifies that data points in the full data set. Don’t forget to scale the data (scale=TRUE in kknn).**
 
-In the scaled knn model the highest accuracy is 86.73% while the unscaled one has the highest accuracy of 6972%. It seems that the unscaled model at its best under performs compared to the scaled model.
+In the scaled knn model the highest accuracy is 86.73% while the unscaled one has the highest accuracy of 69.72%. It seems that the unscaled model at its best under performs compared to the scaled model.
 
 ```{r credit knn scaled}
 #------------------------- getting a sense of the data
