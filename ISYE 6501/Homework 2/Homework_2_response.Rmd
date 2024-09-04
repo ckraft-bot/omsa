@@ -1,0 +1,64 @@
+---
+title: "Homework_2"
+author: "Claire Kraft"
+date: "2024-09-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 3.1
+**Using the same data set (credit_card_data.txt or credit_card_data-headers.txt) as in Question 2.2, use the ksvm or kknn function to find a good classifier:**
+  **(a)	using cross-validation (do this for the k-nearest-neighbors model; SVM is optional); and**
+  **(b)	splitting the data into training, validation, and test data sets (pick either KNN or SVM; the other is optional).**
+  
+3.1a
+
+```{r cross validation}
+# clean workspace
+rm(list =ls())
+
+#------------------------- getting a sense of the data
+# Read in credit_card_data data 
+credit <- read.table("~/GitHub/omsa/ISYE 6501/Homework 2/credit_card_data.txt", sep="\t", header=FALSE)
+# View a summary of the dataset including basic statistics for each column
+summary(credit)
+
+# Get size dimension of df, row x column
+dim(credit) 
+
+# Look for null values
+sum(is.na(credit))
+
+#------------------------- helper
+library(kknn)
+library(ggplot2)
+
+
+```
+
+3.1b
+
+```{r train, validate, test}
+##### code
+```
+## Question 4.1
+**Describe a situation or problem from your job, everyday life, current events, etc., for which a clustering model would be appropriate. List some (up to 5) predictors that you might use.**
+
+1. I have been tracking my spending habits for a few years now. I log monthly expenses such as rent/mortgage, insurance, utility bills, subscription fees, etc. on an excel sheet and create visualizations for myself to analyze. As of right now the clustering process is manual. It'd be neat if a cluster model can identify the purchase types by where the transactions were made without my intervention. 
+
+2. Adult friendships are hard to initiate and maintain. Similar to the dating app concept, but for friendships, it'd be neat if there is a social networking app that links you and other young adults based on a few factors. The cluster model can group the app profiles by hobbies, geography, age, and (time) availability. 
+
+
+### Question 4.2
+**The iris data set iris.txt contains 150 data points, each with four predictor variables and one categorical response. The predictors are the width and length of the sepal and petal of flowers and the response is the type of flower. The data is available from the R library datasets and can be accessed with iris once the library is loaded. It is also available at the UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets/Iris ). The response values are only given to see how well a specific method performed and should not be used to build the model.**
+
+**Use the R function kmeans to cluster the points as well as possible. Report the best combination of predictors, your suggested value of k, and how well your best clustering predicts flower type.**
+
+ansewr 
+```{r code}
+##### code
+```
+
