@@ -27,7 +27,7 @@ rm(list = ls())
 #------------------------- Load and explore data
 # Read the credit card data from the specified file
 credit_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 2//credit_card_data.txt", sep = "\t", header = FALSE)
-
+head(credit_df)
 # Display a summary of the dataset, showing basic statistics for each column
 summary(credit_df)
 
@@ -47,7 +47,7 @@ for (K_value in 1:10) {
   # Count correct predictions
   correct_predictions <- 0  
   
-  # look at [2] of the references
+  # look at [1] of the references
   # Random selection of the data: 80% for training and 20% for testing 
   ## 80% of 654 = 523
   ## 20% of 654 = 131
@@ -105,6 +105,7 @@ rm(list = ls())
 #------------------------- Load and explore data
 # Read the credit card data from the specified file
 credit_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 2//credit_card_data.txt", sep = "\t", header = FALSE)
+head(credit_df)
 
 # Display a summary of the dataset, showing basic statistics for each column
 summary(credit_df)
@@ -207,12 +208,113 @@ print(paste("Final accuracy on test data:", final_accuracy))
 
 **Use the R function kmeans to cluster the points as well as possible. Report the best combination of predictors, your suggested value of k, and how well your best clustering predicts flower type.**
 
-ansewr 
-```{r code}
-##### code
+It looks like the most optimal amount of clusters to have is 3 before the efficacy falls off.
+```{r clsutering}
+#------------------------- Libraries
+library(ggplot2)  # Load the ggplot2 library for data visualization
+
+#------------------------- Clean workspace
+rm(list = ls())  # Remove all objects from the workspace to ensure a clean start
+
+#------------------------- Load and explore data
+# Read the iris data from the specified file
+iris_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 2//iris.txt", header = TRUE)
+
+# Display the first few rows of the dataset to understand its structure
+head(iris_df)
+
+# Display a summary of the dataset, showing basic statistics for each column
+summary(iris_df)
+
+# Get the dimensions of the dataset (rows x columns)
+dim(iris_df)
+
+# Print the column names
+names(iris_df)
+
+# Check for missing values in the dataset
+sum(is.na(iris_df))
+
+# Exclude the first column which is an index, not relevant to model
+iris_clean_df <- iris_df[,2:5]
+
+# Check the data types of the columns
+str(iris_clean_df)
+
+# Exclude non-numeric columns (ensure you only include numeric columns for scaling)
+iris_numeric_df <- iris_clean_df[, sapply(iris_clean_df, is.numeric)]
+
+# Scale the numeric columns
+iris_scaled <- scale(iris_numeric_df)
+
+# Convert the scaled data to a data frame and add the Species column back 
+# look at [4] of the references
+iris_scaled_df <- as.data.frame(iris_scaled)
+iris_scaled_df$Species <- iris_clean_df$Species
+
+# Plotting the scaled data
+# look at [5] of the references
+ggplot(iris_scaled_df, aes(Petal.Length, Petal.Width)) + geom_point(aes(col=Species), size=4)
+
+# Display the frequency table for the Species column
+table(iris_scaled_df$Species)
+
+#------------------------- Modeling for singular k
+
+# Setting the seed for reproducibility
+# look at [5] of the references
+set.seed(101)  
+iris_cluster <- kmeans(iris_scaled, centers=3, nstart=20)
+print(iris_cluster)
+
+#------------------------- Modeling for multiple ks
+# Setting the seed for reproducibility
+# look at [5] of the references
+set.seed(101)
+
+k2 <- kmeans(iris_scaled, centers=2, nstart=20)
+k3 <- kmeans(iris_scaled, centers=3, nstart=20)
+k4 <- kmeans(iris_scaled, centers=4, nstart=20)
+k5 <- kmeans(iris_scaled, centers=5, nstart=20)
+k6 <- kmeans(iris_scaled, centers=6, nstart=20)
+k7 <- kmeans(iris_scaled, centers=6, nstart=20)
+k8 <- kmeans(iris_scaled, centers=6, nstart=20)
+k9 <- kmeans(iris_scaled, centers=6, nstart=20)
+k10 <- kmeans(iris_scaled, centers=6, nstart=20)
+
+
+# Table output of predicted clusters with the original data
+# look at [5] of the references
+table(iris_cluster$cluster, iris_scaled_df$Species)
+
+#------------------------- Visualization
+# look at [5] of the references
+library(cluster)
+clusplot(iris, iris_cluster$cluster, color=T, shade=T, labels=0, lines=0)
+
+# initialize vector
+# look at [5] of the references
+tot.withinss <- numeric(length=10)
+
+# Loop thorugh number of Ks
+# look at [5] of the references
+for (i in 1:10) {
+  iris_cluster <- iris_cluster <- kmeans(iris_scaled, centers=i, nstart=20)
+  tot.withinss[i] <- iris_cluster$tot.withinss
+}
+
+# Ensure the first element is initialized
+# look at [5] of the references
+tot.withinss[1] <- kmeans(iris_scaled, centers=1, nstart=5)$tot.withinss
+
+# Graph elbow plot
+# look at [5] of the references
+plot(1:10, tot.withinss, type="b", pch=19, xlab="Number of Clusters", ylab="Total Within-Cluster Sum of Squares", main="Cluster Elbow")
 ```
 
 References:
 [1] in. (2019, May 22). Randomly Sampling Rows in R. Learningtree.com. https://www.learningtree.com/blog/randomly-sampling-rows-r/
 [2] Calculate the Floor and Ceiling values in R Programming - floor() and ceiling() Function. (2020, May 30). GeeksforGeeks. https://www.geeksforgeeks.org/calculate-the-floor-and-ceiling-values-in-r-programming-floor-and-ceiling-function/
 [3] Why my test accuracy higher than validation accuracy? (2023). Mathworks.com. https://www.mathworks.com/matlabcentral/answers/1954939-why-my-test-accuracy-higher-than-validation-accuracy/?s_tid=ans_lp_feed_leaf
+[4] Zach. (2021, January 27). How to Add a Column to a Data Frame in R (With Examples). Statology. https://www.statology.org/r-add-a-column-to-dataframe/
+[5] Ramos Lorenzo, C. (2019, June 14). RPubs - K-means clustering with iris dataset in R. Rpubs.com. https://rpubs.com/MrCristianrl/504935
