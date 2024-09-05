@@ -15,34 +15,184 @@ knitr::opts_chunk$set(echo = TRUE)
   **(b)	splitting the data into training, validation, and test data sets (pick either KNN or SVM; the other is optional).**
   
 3.1a
-
+It seems k=1 is the best with an accuracy of 81.50% which means a high bias as it prefers itself. But Looking at the ggplot we can see K=5 is the tipping point of the "elbow" graph for prediction power. 
 ```{r cross validation}
-# clean workspace
-rm(list =ls())
-
-#------------------------- getting a sense of the data
-# Read in credit_card_data data 
-credit <- read.table("~/GitHub/omsa/ISYE 6501/Homework 2/credit_card_data.txt", sep="\t", header=FALSE)
-# View a summary of the dataset including basic statistics for each column
-summary(credit)
-
-# Get size dimension of df, row x column
-dim(credit) 
-
-# Look for null values
-sum(is.na(credit))
-
-#------------------------- helper
+#------------------------- Libraries
 library(kknn)
 library(ggplot2)
 
+#------------------------- Clean workspace
+rm(list = ls())
 
+#------------------------- Load and explore data
+# Read the credit card data from the specified file
+credit_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 2//credit_card_data.txt", sep = "\t", header = FALSE)
+
+# Display a summary of the dataset, showing basic statistics for each column
+summary(credit_df)
+
+# Get the dimensions of the dataset (rows x columns)
+dim(credit_df)
+
+# Check for missing values in the dataset
+sum(is.na(credit_df))
+
+#------------------------- Cross-validation for different K values
+# borrowing my homework 1 code snippets for the cross validation and hypertuning of the model
+# Initialize a vector to store accuracies for each K value
+accuracies <- c()
+
+# Loop over different K values (1 to 10)
+for (K_value in 1:10) {
+  # Count correct predictions
+  correct_predictions <- 0  
+  
+  # look at [2] of the references
+  # Random selection of the data: 80% for training and 20% for testing 
+  ## 80% of 654 = 523
+  ## 20% of 654 = 131
+  random_sample <- sample(1:nrow(credit_df), 523, replace = FALSE)
+  train_data <- credit_df[random_sample, ]
+  test_data <- credit_df[-random_sample, ]
+  
+  # Fit the kknn model with internal scaling
+  hypertuned_model <- kknn(V11 ~ ., train = train_data, test = test_data, k = K_value, scale = TRUE)
+  
+  # Get the predicted labels for the test data
+  preds <- fitted(hypertuned_model)
+  
+  # Compare predictions with true labels for the test data
+  correct_predictions <- sum(as.character(preds) == as.character(test_data$V11))
+  
+  # Calculate accuracy for this K value
+  accuracy <- correct_predictions / nrow(test_data)
+  
+  # Print the K value and corresponding accuracy
+  print(paste("K =", K_value, "-> Accuracy:", accuracy))
+  
+  # Store the accuracy for each model
+  accuracies <- c(accuracies, accuracy)
+}
+
+# Find the best K for the scaled model
+best_k_scaled <- which.max(accuracies)
+best_accuracy_scaled <- max(accuracies)
+
+print(paste("Best K for scaled data:", best_k_scaled))
+print(paste("Best accuracy for scaled data:", best_accuracy_scaled))
+
+#------------------------- viz
+# Plotting the accuracy vs K value
+ggplot(data.frame(K = 1:10, Accuracy = accuracies), aes(x = K, y = Accuracy)) +
+  geom_line(color = "blue", size = 1) +    
+  geom_point(color = "red", size = 3) +    
+  labs(title = "KNN Accuracy for Different K Values (LOO-CV, scaled)",
+       x = "K Value",
+       y = "Accuracy") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent)
 ```
-
 3.1b
+In the lectures Dr. Sokol explained that data can be split randomly or in rotations. In this exercise I chose to randomly split my data (3 ways) because rotational data can be organized in such a way that may make the data have bias. The splitting can be 60-20-20 or 70-15-15, 80-10-10. I chose the 80-10-10 configuration. The best k still remains to be k=1. However the accuracy was decreased by a little compared to when the prediction was pitted against testing data in 3.1a. I even shuffled all indices for the train, validate, and test data to eliminate any potential biases. The better performance in 3.1a compared to 3.1b may be due to the test data being lucky [3]. I also wonder if the 20% split was halved making the pool of data to match against even smaller which could mean less likelyhood of matching which could mean lower accuracy. 
+```{r train, validate, and test}
+#------------------------- Libraries
+library(kknn)
+library(ggplot2)
 
-```{r train, validate, test}
-##### code
+#------------------------- Clean workspace
+rm(list = ls())
+
+#------------------------- Load and explore data
+# Read the credit card data from the specified file
+credit_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 2//credit_card_data.txt", sep = "\t", header = FALSE)
+
+# Display a summary of the dataset, showing basic statistics for each column
+summary(credit_df)
+
+# Get the dimensions of the dataset (rows x columns)
+dim(credit_df)
+
+# Check for missing values in the dataset
+sum(is.na(credit_df))
+
+#------------------------- Split Data
+set.seed(1)  # For reproducibility
+
+# Shuffle the data
+shuffled_indices <- sample(1:nrow(credit_df))
+
+# Calculate the number of rows for each set
+# look at [2] of the references
+total_rows <- nrow(credit_df)
+train_rows <- floor(0.8 * total_rows)
+validate_rows <- floor(0.1 * total_rows)
+test_rows <- total_rows - train_rows - validate_rows
+
+# Split indices for training (80%), validation (10%), and testing (10%)
+train_indices <- shuffled_indices[1:train_rows]
+validate_indices <- shuffled_indices[(train_rows + 1):(train_rows + validate_rows)]
+test_indices <- shuffled_indices[(train_rows + validate_rows + 1):total_rows]
+
+# Create datasets
+train_data <- credit_df[train_indices, ]
+validate_data <- credit_df[validate_indices, ]
+test_data <- credit_df[test_indices, ]
+
+#------------------------- Cross-validation for different K values
+# Initialize a vector to store accuracies for each K value
+accuracies <- c()
+
+# Loop over different K values (1 to 30)
+for (K_value in 1:10) {
+  correct_predictions <- 0  # Count correct predictions
+  
+  # Fit the kknn model with internal scaling on the training data
+  hypertuned_model <- kknn(V11 ~ ., train = train_data, test = validate_data, k = K_value, scale = TRUE)
+  
+  # Get the predicted labels for the validation data
+  preds <- fitted(hypertuned_model)
+  
+  # Compare predictions with true labels for the validation data
+  correct_predictions <- sum(as.character(preds) == as.character(validate_data$V11))
+  
+  # Calculate accuracy for this K value on validation data
+  accuracy <- correct_predictions / nrow(validate_data)
+  
+  # Print the K value and corresponding accuracy
+  print(paste("K =", K_value, "-> Accuracy on validation data:", accuracy))
+  
+  # Store the accuracy for each model
+  accuracies <- c(accuracies, accuracy)
+}
+
+# Find the best K for the scaled model
+best_k_scaled <- which.max(accuracies)
+best_accuracy_scaled <- max(accuracies)
+
+print(paste("Best K for scaled data:", best_k_scaled))
+print(paste("Best accuracy for scaled data:", best_accuracy_scaled))
+
+#------------------------- Visualization
+# Plotting the accuracy vs K value
+ggplot(data.frame(K = 1:10, Accuracy = accuracies), aes(x = K, y = Accuracy)) +
+  geom_line(color = "blue", size = 1) +    
+  geom_point(color = "red", size = 3) +    
+  labs(title = "KNN Accuracy for Different K Values (Three-Way Split Data, scaled)",
+       x = "K Value",
+       y = "Accuracy") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent)
+
+#------------------------- Final Model Evaluation on Test Data
+# Train final model with the best K value on the full training data
+final_model <- kknn(V11 ~ ., train = train_data, test = test_data, k = best_k_scaled, scale = TRUE)
+
+# Get the predicted labels for the test data
+final_preds <- fitted(final_model)
+
+# Calculate and print the final accuracy on the test data
+final_accuracy <- sum(as.character(final_preds) == as.character(test_data$V11)) / nrow(test_data)
+print(paste("Final accuracy on test data:", final_accuracy))
 ```
 ## Question 4.1
 **Describe a situation or problem from your job, everyday life, current events, etc., for which a clustering model would be appropriate. List some (up to 5) predictors that you might use.**
@@ -62,3 +212,7 @@ ansewr
 ##### code
 ```
 
+References:
+[1] in. (2019, May 22). Randomly Sampling Rows in R. Learningtree.com. https://www.learningtree.com/blog/randomly-sampling-rows-r/
+[2] Calculate the Floor and Ceiling values in R Programming - floor() and ceiling() Function. (2020, May 30). GeeksforGeeks. https://www.geeksforgeeks.org/calculate-the-floor-and-ceiling-values-in-r-programming-floor-and-ceiling-function/
+[3] Why my test accuracy higher than validation accuracy? (2023). Mathworks.com. https://www.mathworks.com/matlabcentral/answers/1954939-why-my-test-accuracy-higher-than-validation-accuracy/?s_tid=ans_lp_feed_leaf
