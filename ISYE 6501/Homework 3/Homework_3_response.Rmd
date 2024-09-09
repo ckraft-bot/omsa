@@ -12,10 +12,37 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Question 5.1
 **Using crime data from the file uscrime.txt (http://www.statsci.org/data/general/uscrime.txt, description at http://www.statsci.org/data/general/uscrime.html), test to see whether there are any outliers in the last column (number of crimes per 100,000 people).  Use the grubbs.test function in the outliers package in R.**
 
-answer
+I first ran the grubb test function and chose the second test with this argument ```type=11``` which checks for the opposite extreme ends of the data. It compares the range (difference between the smallest and largest values) to the standard deviation of the data [1]. The p-value is a metric for how valid our observation is. The lower the p value the more statistically significant the observation, the higher the less statistically significant. The p-value is 1 for this grub test. It's best to take this observation with a grain of salt as this is statistically _insignificant_ [3]. 
+
+I then ran the whiskers box plot and there are three outliers [2].
+
 ```{r code}
-#code
+#------------------------- Libraries
+#install.packages("outliers")
+library(outliers)
+library(ggplot2)
+
+#------------------------- Load and explore data
+crime_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 3//uscrime.txt", header = TRUE)
+head(crime_df)
+summary(crime_df)
+
+#------------------------- Detect outliers on simulated data
+
+# Perform grubbs test
+# look at reference 1
+grubbs.test(crime_df$Crime,type=11, opposite = FALSE, two.sided = FALSE) 
+
+#------------------------- Visualize original crime data
+# Create a boxplot for the 'Crime' column in the original crime_df dataset
+# look at reference 2
+ggplot(crime_df, aes(x = "", y = Crime)) + 
+    geom_boxplot(fill = "slateblue", alpha = 0.2) + 
+    labs(title="Number of Crimes Per 100,000 People") +
+    xlab("x") + 
+    ylab("Crime")
 ```
+
 
 
 ## Question 6.1
@@ -23,7 +50,7 @@ answer
 
 answer
 ```{r code}
-#code
+print("hello")
 ```
 
 ### Question 6.2.1
@@ -31,7 +58,7 @@ answer
 
 answer
 ```{r code}
-#code
+print("hello")
 ```
 
 ### Question 6.2.2
@@ -39,17 +66,15 @@ answer
 
 answer
 ```{r code}
-#code
+print("hello")
 ```
 
 References:
 
-[1] in. (2019, May 22). Randomly Sampling Rows in R. Learningtree.com. https://www.learningtree.com/blog/randomly-sampling-rows-r/
+[1] Grubbs, F.E. (1950). Sample Criteria for testing outlying observations. Ann. Math. Stat. 21, 1, 27-58.
 
-[2] Calculate the Floor and Ceiling values in R Programming - floor() and ceiling() Function. (2020, May 30). GeeksforGeeks. https://www.geeksforgeeks.org/calculate-the-floor-and-ceiling-values-in-r-programming-floor-and-ceiling-function/
+[2] Holtz, Y. (n.d.). Basic ggplot2 boxplot. Www.r-Graph-Gallery.com. https://r-graph-gallery.com/262-basic-boxplot-with-ggplot2.html
 
-[3] Why my test accuracy higher than validation accuracy? (2023). Mathworks.com. https://www.mathworks.com/matlabcentral/answers/1954939-why-my-test-accuracy-higher-than-validation-accuracy/?s_tid=ans_lp_feed_leaf
-
-[4] Zach. (2021, January 27). How to Add a Column to a Data Frame in R (With Examples). Statology. https://www.statology.org/r-add-a-column-to-dataframe/
-
-[5] Ramos Lorenzo, C. (2019, June 14). RPubs - K-means clustering with iris dataset in R. Rpubs.com. https://rpubs.com/MrCristianrl/504935
+[3] Simplilearn. (2022, August 30). What Is P-Value in Statistical Hypothesis? | Simplilearn. Simplilearn.com. https://www.simplilearn.com/tutorials/statistics-tutorial/p-value-in-statistics-hypothesis
+[4] 
+[5] 
