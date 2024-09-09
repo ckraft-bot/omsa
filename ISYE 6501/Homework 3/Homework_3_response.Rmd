@@ -16,14 +16,14 @@ I first ran the grubb test function and chose the second test with this argument
 
 I then ran the whiskers box plot and there are three outliers [2].
 
-```{r code}
+```{r grubb test & whisker plot}
 #------------------------- Libraries
-#install.packages("outliers")
+install.packages("outliers")
 library(outliers)
 library(ggplot2)
 
 #------------------------- Load and explore data
-crime_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 3//uscrime.txt", header = TRUE)
+crime_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 3//uscrime.txt", sep = "//t", header = TRUE)
 head(crime_df)
 summary(crime_df)
 
@@ -34,13 +34,15 @@ summary(crime_df)
 grubbs.test(crime_df$Crime,type=11, opposite = FALSE, two.sided = FALSE) 
 
 #------------------------- Visualize original crime data
-# Create a boxplot for the 'Crime' column in the original crime_df dataset
 # look at reference 2
+# Check the column names in your dataset
+colnames(crime_df)
+# Sample data
+data(crime_df)
+# Simple boxplot 
 ggplot(crime_df, aes(x = "", y = Crime)) + 
-    geom_boxplot(fill = "slateblue", alpha = 0.2) + 
-    labs(title="Number of Crimes Per 100,000 People") +
-    xlab("x") + 
-    ylab("Crime")
+    geom_boxplot() + 
+    labs(title = "Number of Crimes Per 100,000 People")
 ```
 
 
@@ -50,7 +52,7 @@ ggplot(crime_df, aes(x = "", y = Crime)) +
 
 answer
 ```{r code}
-print("hello")
+
 ```
 
 ### Question 6.2.1
@@ -58,7 +60,7 @@ print("hello")
 
 answer
 ```{r code}
-print("hello")
+
 ```
 
 ### Question 6.2.2
@@ -66,7 +68,7 @@ print("hello")
 
 answer
 ```{r code}
-print("hello")
+
 ```
 
 References:
