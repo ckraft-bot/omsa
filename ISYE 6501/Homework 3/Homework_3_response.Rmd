@@ -51,7 +51,36 @@ ggplot(crime_df, aes(x = "", y = Crime)) +
 ## Question 6.1
 **Describe a situation or problem from your job, everyday life, current events, etc., for which a Change Detection model would be appropriate. Applying the CUSUM technique, how would you choose the critical value and the threshold?**
 
-answer
+CUSUM is used to detect the changes (increases or decreases) in data. The slower the changes detected the less likely to falsely detect changes. I already track changes on all my bills. It would be neat to apply the CUSUM approach with my non fixed bills. For example my water, sewar, and electricity bills vary by consumption. I have the historical data gathered, With about 2 years of data collection, I have ran an exploratory data analysis (EDA). In the EDA I have the basic statistics (mean, median, standard deviation, percentiles, etc) with the ```describe()``` fucntion. The mean and standard deviations are sufficient enough to see my trends and baseline overtime. For the critical value (k) maybe I'll set that at 10% change from the standard deviation price. As for the threshold (h) I'll set it at double of critical value because every penny counts.
+
+_my pretend values_\
+k = 0.10
+
+std dev = $100
+
+k=(0.10*100) = $10
+
+h = 2
+
+k = $10
+
+h = (2*10) = 20
+
+
+_variables_\
+ct = CUSUM for current month
+
+ct-1 = CUSUM for previous month
+
+xt = current bill
+
+k: critical value
+
+h: threshold
+
+
+_formula_\
+Ct = max(0,Ct−1+(xt−mean−k))
 
 
 ### Question 6.2.1

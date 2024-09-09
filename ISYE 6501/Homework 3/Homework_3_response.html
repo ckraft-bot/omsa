@@ -459,7 +459,34 @@ ggplot(crime_df, aes(x = &quot;&quot;, y = Crime)) +
 current events, etc., for which a Change Detection model would be
 appropriate. Applying the CUSUM technique, how would you choose the
 critical value and the threshold?</strong></p>
-<p>answer</p>
+<p>CUSUM is used to detect the changes (increases or decreases) in data.
+The slower the changes detected the less likely to falsely detect
+changes. I already track changes on all my bills. It would be neat to
+apply the CUSUM approach with my non fixed bills. For example my water,
+sewar, and electricity bills vary by consumption. I have the historical
+data gathered, With about 2 years of data collection, I have ran an
+exploratory data analysis (EDA). In the EDA I have the basic statistics
+(mean, median, standard deviation, percentiles, etc) with the
+<code>describe()</code> fucntion. The mean and standard deviations are
+sufficient enough to see my trends and baseline overtime. For the
+critical value (k) maybe I’ll set that at 10% change from the standard
+deviation price. As for the threshold (h) I’ll set it at double of
+critical value because every penny counts.</p>
+<p><em>my pretend values</em><br />
+k = 0.10</p>
+<p>std dev = $100</p>
+<p>k=(0.10*100) = $10</p>
+<p>h = 2</p>
+<p>k = $10</p>
+<p>h = (2*10) = 20</p>
+<p><em>variables</em><br />
+ct = CUSUM for current month</p>
+<p>ct-1 = CUSUM for previous month</p>
+<p>xt = current bill</p>
+<p>k: critical value</p>
+<p>h: threshold</p>
+<p><em>formula</em><br />
+Ct = max(0,Ct−1+(xt−mean−k))</p>
 <div id="question-6.2.1" class="section level3">
 <h3>Question 6.2.1</h3>
 <p><strong>Using July through October daily-high-temperature data for
