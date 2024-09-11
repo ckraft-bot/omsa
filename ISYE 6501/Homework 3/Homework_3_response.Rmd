@@ -87,7 +87,7 @@ I used Excel for this analysis. The data covers July through October from 1996 t
 
 I set 88.75 as my baseline mean (μ). For critical values, I wanted to use 2.5 standard deviations away. According to the normal bell curve principle, most data falls within ±2 standard deviations, covering about 95% of the data[5]. Therefore, I used the formula ```k=2*std dev``` for my critical value. For the thresholds, I calculated an upper threshold (UH) and a lower threshold (LH). The upper threshold formula is ```uh=mean+k``` and the lower threshold formula is ```lh=mean-k```.
 
-Since the goal is to determine when summer ends, I prioritized the lower threshold to calculate the CUSUM. In other words, temperatures below 83.75 degrees indicate the end of summer. I then used conditional highlighting (highlighting any data below the lower threshold value) to see when the temperatures began to drop, signaling a season change. As a gut check, it seems that mid-September is when summer ends, as most days meet the lower threshold.
+Since the goal is to determine when summer ends, I prioritized the lower threshold to calculate the CUSUM. In other words, temperatures below 83.75 degrees indicate the end of summer. I then used conditional highlighting (highlighting any data below the lower threshold value) to see when the temperatures began to drop, signaling a season change. As a gut check, it seems that mid-September is when summer ends, as most days meet the lower threshold. If we had to pick a specific date on the season change then September 22nd would be date as there are no temperatures above the upper threshold. 
 
 _formulas_\
 Ct = max(0,Ct−1+(xt−mean−k))
@@ -128,6 +128,7 @@ View(head(temps_df))
 ### Question 6.2.2
 **Use a CUSUM approach to make a judgment of whether Atlanta’s summer climate has gotten warmer in that time (and if so, when).**
 
+In my observation mid September is the beginning to the end of summer. September 22nd is the first day of fall. Looking at September 22nd year of year it looks like the temps are steadily getting higher. In the late 90s the temps sit at 70 degrees. Then 2004-2014 with the exception of 2010 sit at 80 some degrees. 2010 is unusually high at 92 degrees. 2015 drops back down to 76 degrees to match the trends of the late 90s. In summer the same date (September 22nd) year over year is getting hotter.
 
 
 References:
