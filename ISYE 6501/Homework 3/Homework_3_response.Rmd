@@ -29,7 +29,6 @@ head(crime_df)
 summary(crime_df)
 
 #------------------------- Detect outliers on simulated data
-
 # Perform grubbs test
 # look at reference 1
 grubbs.test(crime_df$Crime,type=11, opposite = FALSE, two.sided = FALSE) 
@@ -84,6 +83,27 @@ Ct = max(0,Ct−1+(xt−mean−k))
 ### Question 6.2.1
 **Using July through October daily-high-temperature data for Atlanta for 1996 through 2015, use a CUSUM approach to identify when unofficial summer ends (i.e., when the weather starts cooling off) each year. You can get the data that you need from the file temps.txt or online, for example at http://www.iweathernet.com/atlanta-weather-records or https://www.wunderground.com/history/airport/KFTY/2015/7/1/CustomHistory.html. You can use R if you’d like, but it’s straightforward enough that an Excel spreadsheet can easily do the job too.**
 
+I used Excel for this analysis. The data covers July through October from 1996 to 2015. I first aggregated every temperature in the dataset and found an average of 83.34 degrees. Then, I aggregated all the temperatures by month across all years to identify the hottest month. The average temperature, across all the years, is 88.75 degrees in July, 88.62 degrees in September, and 82.67 degrees in October. Using these three averages, I defined July as the peak of “summer” since it has the highest average temperature.
+
+I set 88.75 as my baseline mean (μ). For critical values, I wanted to use 2.5 standard deviations away. According to the normal bell curve principle, most data falls within ±2 standard deviations, covering about 95% of the data[5]. Therefore, I used the formula ```k=2*std dev``` for my critical value. For the thresholds, I calculated an upper threshold (UH) and a lower threshold (LH). The upper threshold formula is ```uh=mean+k``` and the lower threshold formula is ```lh=mean-k```.
+
+Since the goal is to determine when summer ends, I prioritized the lower threshold to calculate the CUSUM. In other words, temperatures below 83.75 degrees indicate the end of summer. I then used conditional highlighting (highlighting any data below the lower threshold value) to see when the temperatures began to drop, signaling a season change. As a gut check, it seems that mid-September is when summer ends, as most days meet the lower threshold.
+
+_formulas_\
+Ct = max(0,Ct−1+(xt−mean−k))
+
+_formulas detailed_\
+mean = 88.75
+
+std dev = 2.5 
+
+k = 5
+
+uh = 93.75
+
+lh = 83.75
+
+
 ```{r atlanta summer}
 #------------------------- Libraries
 #install.packages("outliers")
@@ -102,14 +122,12 @@ colnames(temps_df) <- gsub("X", "", colnames(temps_df))
 
 # View the first few rows of the updated dataframe
 View(head(temps_df))
-
 ```
 
 
 ### Question 6.2.2
 **Use a CUSUM approach to make a judgment of whether Atlanta’s summer climate has gotten warmer in that time (and if so, when).**
 
-answer
 
 
 References:
@@ -122,4 +140,4 @@ References:
 
 [4] r Remove parts of column name after certain characters. (n.d.). Stack Overflow. https://stackoverflow.com/questions/37800704/r-remove-parts-of-column-name-after-certain-characters
 
-[5] 
+[5] Frost, J. (2021, August 31). Empirical Rule: Definition, Formula, and Uses. Statistics by Jim. https://statisticsbyjim.com/probability/empirical-rule/

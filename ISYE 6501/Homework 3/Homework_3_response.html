@@ -13,7 +13,7 @@
 
 <meta name="date" content="2024-09-08" />
 
-<title>Homework_2</title>
+<title>Homework_3</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,7 +350,7 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Homework_2</h1>
+<h1 class="title toc-ignore">Homework_3</h1>
 <h4 class="author">Claire Kraft</h4>
 <h4 class="date">2024-09-08</h4>
 
@@ -428,7 +428,6 @@ head(crime_df)</code></pre>
 ##  3rd Qu.:22.75   3rd Qu.:0.05445   3rd Qu.:30.45   3rd Qu.:1057.5  
 ##  Max.   :27.60   Max.   :0.11980   Max.   :44.00   Max.   :1993.0</code></pre>
 <pre class="r"><code>#------------------------- Detect outliers on simulated data
-
 # Perform grubbs test
 # look at reference 1
 grubbs.test(crime_df$Crime,type=11, opposite = FALSE, two.sided = FALSE) </code></pre>
@@ -471,7 +470,8 @@ exploratory data analysis (EDA). In the EDA I have the basic statistics
 deviations are sufficient enough to see my trends and baseline overtime.
 For the critical value (k) maybe I’ll set that at 10% change from the
 standard deviation price. As for the threshold (h) I’ll set it at double
-of critical value because every penny counts.</p>
+of critical value because every penny counts and i want to be alerted as
+that threshold even if it may seem conservative.</p>
 <p><em>my pretend values</em><br />
 critical value = 0.10</p>
 <p>std dev = $100</p>
@@ -495,11 +495,96 @@ year. You can get the data that you need from the file temps.txt or
 online, for example at <a href="http://www.iweathernet.com/atlanta-weather-records" class="uri">http://www.iweathernet.com/atlanta-weather-records</a> or <a href="https://www.wunderground.com/history/airport/KFTY/2015/7/1/CustomHistory.html" class="uri">https://www.wunderground.com/history/airport/KFTY/2015/7/1/CustomHistory.html</a>.
 You can use R if you’d like, but it’s straightforward enough that an
 Excel spreadsheet can easily do the job too.</strong></p>
+<p>I used Excel for this analysis. The data covers July through October
+from 1996 to 2015. I first aggregated every temperature in the dataset
+and found an average of 83.34 degrees. Then, I aggregated all the
+temperatures by month across all years to identify the hottest month.
+The average temperature, across all the years, is 88.75 degrees in July,
+88.62 degrees in September, and 82.67 degrees in October. Using these
+three averages, I defined July as the peak of “summer” since it has the
+highest average temperature.</p>
+<p>I set 88.75 as my baseline mean (μ). For critical values, I wanted to
+use 2.5 standard deviations away. According to the normal bell curve
+principle, most data falls within ±2 standard deviations, covering about
+95% of the data[5]. Therefore, I used the formula
+<code>k=2*std dev</code> for my critical value. For the thresholds, I
+calculated an upper threshold (UH) and a lower threshold (LH). The upper
+threshold formula is <code>uh=mean+k</code> and the lower threshold
+formula is <code>lh=mean-k</code>.</p>
+<p>Since the goal is to determine when summer ends, I prioritized the
+lower threshold to calculate the CUSUM. In other words, temperatures
+below 83.75 degrees indicate the end of summer. I then used conditional
+highlighting (highlighting any data below the lower threshold value) to
+see when the temperatures began to drop, signaling a season change. As a
+gut check, it seems that mid-September is when summer ends, as most days
+meet the lower threshold.</p>
+<p><em>formulas</em><br />
+Ct = max(0,Ct−1+(xt−mean−k))</p>
+<p><em>formulas detailed</em><br />
+mean = 88.75</p>
+<p>std dev = 2.5</p>
+<p>k = 5</p>
+<p>uh = 93.75</p>
+<p>lh = 83.75</p>
 <pre class="r"><code>#------------------------- Libraries
 #install.packages(&quot;outliers&quot;)
 #install.packages(&quot;tidyverse&quot;)
 library(outliers)
-library(ggplot2)</code></pre>
+library(ggplot2)
+
+# Load and explore data
+temps_df &lt;- read.table(&quot;C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 3//temps.txt&quot;, sep = &quot;\t&quot;, header = TRUE)
+summary(temps_df)</code></pre>
+<pre><code>##      DAY                X1996           X1997           X1998      
+##  Length:123         Min.   :60.00   Min.   :55.00   Min.   :63.00  
+##  Class :character   1st Qu.:79.00   1st Qu.:78.50   1st Qu.:79.50  
+##  Mode  :character   Median :84.00   Median :84.00   Median :86.00  
+##                     Mean   :83.72   Mean   :81.67   Mean   :84.26  
+##                     3rd Qu.:90.00   3rd Qu.:88.50   3rd Qu.:89.00  
+##                     Max.   :99.00   Max.   :95.00   Max.   :95.00  
+##      X1999           X2000            X2001           X2002      
+##  Min.   :57.00   Min.   : 55.00   Min.   :51.00   Min.   :57.00  
+##  1st Qu.:75.00   1st Qu.: 77.00   1st Qu.:78.00   1st Qu.:78.00  
+##  Median :86.00   Median : 86.00   Median :84.00   Median :87.00  
+##  Mean   :83.36   Mean   : 84.03   Mean   :81.55   Mean   :83.59  
+##  3rd Qu.:91.00   3rd Qu.: 91.00   3rd Qu.:87.00   3rd Qu.:91.00  
+##  Max.   :99.00   Max.   :101.00   Max.   :93.00   Max.   :97.00  
+##      X2003           X2004           X2005           X2006      
+##  Min.   :57.00   Min.   :62.00   Min.   :54.00   Min.   :53.00  
+##  1st Qu.:78.00   1st Qu.:78.00   1st Qu.:81.50   1st Qu.:79.00  
+##  Median :84.00   Median :82.00   Median :85.00   Median :85.00  
+##  Mean   :81.48   Mean   :81.76   Mean   :83.36   Mean   :83.05  
+##  3rd Qu.:87.00   3rd Qu.:87.00   3rd Qu.:88.00   3rd Qu.:91.00  
+##  Max.   :91.00   Max.   :95.00   Max.   :94.00   Max.   :98.00  
+##      X2007           X2008           X2009           X2010      
+##  Min.   : 59.0   Min.   :50.00   Min.   :51.00   Min.   :67.00  
+##  1st Qu.: 81.0   1st Qu.:79.50   1st Qu.:75.00   1st Qu.:82.00  
+##  Median : 86.0   Median :85.00   Median :83.00   Median :90.00  
+##  Mean   : 85.4   Mean   :82.51   Mean   :80.99   Mean   :87.21  
+##  3rd Qu.: 89.5   3rd Qu.:88.50   3rd Qu.:88.00   3rd Qu.:93.00  
+##  Max.   :104.0   Max.   :95.00   Max.   :95.00   Max.   :97.00  
+##      X2011           X2012            X2013           X2014      
+##  Min.   :59.00   Min.   : 56.00   Min.   :56.00   Min.   :63.00  
+##  1st Qu.:79.00   1st Qu.: 79.50   1st Qu.:77.00   1st Qu.:81.50  
+##  Median :89.00   Median : 85.00   Median :84.00   Median :86.00  
+##  Mean   :85.28   Mean   : 84.65   Mean   :81.67   Mean   :83.94  
+##  3rd Qu.:94.00   3rd Qu.: 90.50   3rd Qu.:88.00   3rd Qu.:89.00  
+##  Max.   :99.00   Max.   :105.00   Max.   :92.00   Max.   :95.00  
+##      X2015     
+##  Min.   :56.0  
+##  1st Qu.:77.0  
+##  Median :85.0  
+##  Mean   :83.3  
+##  3rd Qu.:90.0  
+##  Max.   :97.0</code></pre>
+<pre class="r"><code>View(head(temps_df))
+
+# Remove the &#39;x&#39; from all column headers
+# look at reference 4
+colnames(temps_df) &lt;- gsub(&quot;X&quot;, &quot;&quot;, colnames(temps_df))
+
+# View the first few rows of the updated dataframe
+View(head(temps_df))</code></pre>
 </div>
 <div id="question-6.2.2" class="section level3">
 <h3>Question 6.2.2</h3>
@@ -513,8 +598,11 @@ observations. Ann. Math. Stat. 21, 1, 27-58.</p>
 <p>[2] Holtz, Y. (n.d.). Basic ggplot2 boxplot. Www.r-Graph-Gallery.com.
 <a href="https://r-graph-gallery.com/262-basic-boxplot-with-ggplot2.html" class="uri">https://r-graph-gallery.com/262-basic-boxplot-with-ggplot2.html</a></p>
 <p>[3] Simplilearn. (2022, August 30). What Is P-Value in Statistical
-Hypothesis? | Simplilearn. Simplilearn.com. <a href="https://www.simplilearn.com/tutorials/statistics-tutorial/p-value-in-statistics-hypothesis" class="uri">https://www.simplilearn.com/tutorials/statistics-tutorial/p-value-in-statistics-hypothesis</a>
-[4] [5]</p>
+Hypothesis? | Simplilearn. Simplilearn.com. <a href="https://www.simplilearn.com/tutorials/statistics-tutorial/p-value-in-statistics-hypothesis" class="uri">https://www.simplilearn.com/tutorials/statistics-tutorial/p-value-in-statistics-hypothesis</a></p>
+<p>[4] r Remove parts of column name after certain characters. (n.d.).
+Stack Overflow. <a href="https://stackoverflow.com/questions/37800704/r-remove-parts-of-column-name-after-certain-characters" class="uri">https://stackoverflow.com/questions/37800704/r-remove-parts-of-column-name-after-certain-characters</a></p>
+<p>[5] Frost, J. (2021, August 31). Empirical Rule: Definition, Formula,
+and Uses. Statistics by Jim. <a href="https://statisticsbyjim.com/probability/empirical-rule/" class="uri">https://statisticsbyjim.com/probability/empirical-rule/</a></p>
 </div>
 </div>
 
