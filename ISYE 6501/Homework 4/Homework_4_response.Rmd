@@ -12,38 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Question 7.1
 **Describe a situation or problem from your job, everyday life, current events, etc., for which exponential smoothing would be appropriate. What data would you need? Would you expect the value of $\alpha A$ (the first smoothing parameter) to be closer to 0 or 1, and why?**
 
-answer
+One of my hobbies is distance running. I run casually but I would like to use exponential smoothing to help me create a training program. This way I can increase my mileage gradually and not injure myself. I would need to import all my running records from Garmin or Nike Run tracking apps from at least a year ago. Maybe I can import in the last 5 years of data. In addition to the miles, some other columns can include elevation, weather (temperature), and pace.
 
-```{r grubb test & whisker plot}
-#------------------------- Libraries
-#install.packages("outliers")
-#install.packages("tidyverse")
-library(outliers)
-library(ggplot2)
+In terms of exponential smoothing I can see if there are seasonal patterns where I am running more efficiently than other seasons. I know that I tend to run faster in the cold. So using the pace + distance / mileage i can figure out my efficiency. Exponential smoothing could observe my efficiency in the winter is better than the summer. For the Holt linear trend model maybe it can detect my distance accrual as I get into the consistent habit of running. Running is a sport that is easy to fall out of and easy to get back into shape. 
 
-#------------------------- Load and explore data
-crime_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 3//uscrime.txt", sep = "\t", header = TRUE)
-head(crime_df)
-summary(crime_df)
-
-#------------------------- Detect outliers on simulated data
-# Perform grubbs test
-# look at reference 1
-grubbs.test(crime_df$Crime,type=11, opposite = FALSE, two.sided = FALSE) 
-
-#------------------------- Visualize original crime data
-# look at reference 2
-# Check the column names in your dataset
-colnames(crime_df)
-# Sample data
-data(crime_df)
-# Simple boxplot 
-ggplot(crime_df, aes(x = "", y = Crime)) + 
-    geom_boxplot() + 
-    labs(title = "Number of Crimes Per 100,000 People")
-```
-
-
+The alpha value determines the weight on observations. It ranges from 0 and 1. When the alpha is closer to 0 then the data is more random. When the alpha is closer to 1 then the data is less random. When there is more randomness then trust the previous/historically estimates. If the randomness is less then trust what you see currently/recently. In other words if my running data is _mostly stable_ with a some fluctuations _(less random)_ over the years then I should pick an alpha closer to 1. If my running data is _mostly inconsistent_, with many variances, _(more random)_ then i should choose an alpha closer to 0.
 
 ## Question 7.2
 **Using the 20 years of daily high temperature data for Atlanta (July through October) from Question 6.2 (file temps.txt), build and use an exponential smoothing model to help make a judgment of whether the unofficial end of summer has gotten later over the 20 years.  (Part of the point of this assignment is for you to think about how you might use exponential smoothing to answer this question. Feel free to combine it with other models if you’d like to. There’s certainly more than one reasonable approach.)**
@@ -51,17 +24,89 @@ ggplot(crime_df, aes(x = "", y = Crime)) +
 **Note: in R, you can use either HoltWinters (simpler to use) or the smooth package’s es function (harder to use, but more general).  If you use es, the Holt-Winters model uses model=”AAM” in the function call (the first and second constants are used “A”dditively, and the third (seasonality) is used “M”ultiplicatively; the documentation doesn’t make that clear).**
 
 
-answer
+The additive and basic holt winter models had the lowest (and same) sum of squared errors. After smoothing the additive model i exported the data for cusum. The formula is 
+```{r atlanta summer}
+# for all code snippets look at reference 1
+#------------------------- Load and explore data
+rm(list = ls()) 
 
+temps_df <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 4//temps.txt", header=TRUE)
+#temps_df  
+
+# Convert the data frame to a time series vector
+temps_vec <- as.vector(unlist(temps_df[,2:21]))  # excluding the first date column
+#temps_vec 
+tail(temps_vec)  
+
+# Convert the vector to a time series object
+temps_ts <- ts(temps_vec, start=1996, frequency=123)  # starting from 1996 with 123 observations
+#temps_ts  
+tail(temps_ts)
+
+# Plot the time series data
+plot(temps_ts)  
+
+# Decompose the time series into its components (trend, seasonal, and random)
+plot(decompose(temps_ts, type = "mult"))
+```
+```{r Holt winters model basic}
+
+# Holt winters model
+# multiplicative
+?HoltWinters
+temp_holt_basic <- HoltWinters(temps_ts, alpha = NULL, beta = NULL, gamma = NULL)
+temp_holt_basic$alpha
+temp_holt_basic$beta
+temp_holt_basic$gamma
+temp_holt_basic$SSE # 66244.25
+plot(temp_holt_basic)
+```
+```{r Holt winters model additive}
+
+# Holt winters model
+# additive
+?HoltWinters
+temp_holt_a <- HoltWinters(temps_ts, alpha = NULL, beta = NULL, gamma = NULL, seasonal = "additive")
+temp_holt_a$alpha
+temp_holt_a$beta
+temp_holt_a$gamma
+temp_holt_a$SSE # 66244.25
+plot(temp_holt_a)
+```
+```{r Holt winters model multiplicative}
+
+# Holt winters model
+# 
+?HoltWinters
+temp_holt_m <- HoltWinters(temps_ts, alpha = NULL, beta = NULL, gamma = NULL, seasonal = "multiplicative")
+temp_holt_m$alpha
+temp_holt_m$beta
+temp_holt_m$gamma
+temp_holt_m$SSE # 68904.57
+plot(temp_holt_m)
+```
+```{r Holt winters model fitted}
+temps_basic_fitted = temp_holt_basic$fitted
+plot(temps_basic_fitted)
+
+temps_additive_fitted = temp_holt_a$fitted
+plot(temps_additive_fitted)
+
+temps_multiplicative_fitted = temp_holt_m$fitted
+plot(temps_multiplicative_fitted)
+```
+```{r smooth}
+temp_smooth <- matrix(temp_holt_basic$fitted[,4], nrow=123)
+tail(temp_smooth)
+```
+```{r predict}
+plot(temp_holt_a, predict(temp_holt_a, n.ahead=246))
+```
+
+```{r export for cusum}
+write.csv(temp_smooth, file="temp_smoothed_export.csv", fileEncoding="UTF-16LE")
+```
 
 References:
 
-[1] source
-
-[2] source
-
-[3] source
-
-[4] source
-
-[5] source
+[1] Pin Hsu TA presentation 
