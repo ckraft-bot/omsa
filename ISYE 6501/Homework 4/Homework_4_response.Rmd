@@ -24,7 +24,10 @@ The alpha value determines the weight on observations. It ranges from 0 and 1. W
 **Note: in R, you can use either HoltWinters (simpler to use) or the smooth package’s es function (harder to use, but more general).  If you use es, the Holt-Winters model uses model=”AAM” in the function call (the first and second constants are used “A”dditively, and the third (seasonality) is used “M”ultiplicatively; the documentation doesn’t make that clear).**
 
 
-The additive and basic holt winter models had the lowest (and same) sum of squared errors. After smoothing the additive model i exported the data for cusum. The formula is 
+The additive and basic holt winter models had the lowest (and same) sum of squared errors. After smoothing the additive model i exported the data for cusum. It seems summer ends around the 76th out of 123rd day. 
+
+I set 12.82 as my baseline mean (μ). For critical values, I wanted to use 2 standard deviations away. According to the normal bell curve principle, most data falls within ±2 standard deviations, covering about 95% of the data[5]. Therefore, I used the formula ```k=2*std dev``` for my critical value. For the thresholds, I calculated an upper threshold (UH) and a lower threshold (LH). The upper threshold formula is ```uh=mean+k``` and the lower threshold formula is ```lh=mean-k```.
+
 ```{r atlanta summer}
 # for all code snippets look at reference 1
 #------------------------- Load and explore data
