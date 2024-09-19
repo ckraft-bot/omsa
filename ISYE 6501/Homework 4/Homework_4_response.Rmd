@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Question 7.1
-**Describe a situation or problem from your job, everyday life, current events, etc., for which exponential smoothing would be appropriate. What data would you need? Would you expect the value of  (the first smoothing parameter) to be closer to 0 or 1, and why?**
+**Describe a situation or problem from your job, everyday life, current events, etc., for which exponential smoothing would be appropriate. What data would you need? Would you expect the value of $\alpha A$ (the first smoothing parameter) to be closer to 0 or 1, and why?**
 
 answer
 
