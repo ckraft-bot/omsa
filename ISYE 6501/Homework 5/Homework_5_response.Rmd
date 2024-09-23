@@ -12,11 +12,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Question 8.1
 **Describe a situation or problem from your job, everyday life, current events, etc., for which a linear regression model would be appropriate. List some (up to 5) predictors that you might use.**
 
-answer
-```{r code}
-#code
-```
+- climbing
+Using linear regression to track my climbing progress could be helpful and object. Climbing has several climbing grades depending on what type of climbing you do. I'll just speak about lead climbing which uses the Yosemite or YDS grading scale. The linear regression could use these independent variables: climbing frequency, training hours, rest days, body measurements, onsight difficulty. To onsight in sports climbing means to reach the top on the first try with little information or mistake. 
 
+The formula [1]:
+$$
+\text{Climbing Difficulty} = \beta_0 + \beta_1 (\text{Climbing Frequency}) + \beta_2 (\text{Training Hours}) + \beta_3 (\text{Rest Days}) + \beta_4 (\text{Body Measurements}) + \beta_5 (\text{Onsight Difficulty}) + \epsilon
+$$
 
 ## Question 8.2
 **Using crime data from http://www.statsci.org/data/general/uscrime.txt (file uscrime.txt, description at http://www.statsci.org/data/general/uscrime.html ), use regression (a useful R function is lm or glm) to predict the observed crime rate in a city with the following data:**
@@ -41,15 +43,16 @@ answer
 **Note that because there are only 47 data points and 15 predictors, you’ll probably notice some overfitting. We’ll see ways of dealing with this sort of problem later in the course.**
 
 answer
-```{r code}
-#code
+```{r uscrime}
+1 + 2
+
 ```
 
 
 
 References:
 
-[1] APA citation
+[1] "Microsoft CoPilot. Accessed 2024-9-22. Prompt: 'climbing frequency, training hours, rest days, body measurements, onsight difficulty are independent variables to my climbing difficulty (dependency variable) write my linear regression formula in markeddown sytnax' Generated using https://copilot.microsoft.com/."
 
 [2] APA citation
 
