@@ -1,0 +1,176 @@
+---
+title: "Homework_5"
+author: "Claire Kraft"
+date: "2024-09-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 8.1
+**Describe a situation or problem from your job, everyday life, current events, etc., for which a linear regression model would be appropriate. List some (up to 5) predictors that you might use.**
+
+Climbing
+
+Using linear regression to track my climbing progress could be helpful and object. Climbing has several climbing grades depending on what type of climbing you do. I'll just speak about lead climbing which uses the Yosemite or YDS grading scale. The linear regression could use these independent variables: climbing frequency, training hours, rest days, body measurements, onsight difficulty. To onsight in sports climbing means to reach the top on the first try with little information or mistake. 
+
+The formula [1]:
+$$
+\text{Climbing Difficulty} = \beta_0 + \beta_1 (\text{Climbing Frequency}) + \beta_2 (\text{Training Hours}) + \beta_3 (\text{Rest Days}) + \beta_4 (\text{Body Measurements}) + \beta_5 (\text{Onsight Difficulty}) + \epsilon
+$$
+
+## Question 8.2
+**Using crime data from http://www.statsci.org/data/general/uscrime.txt (file uscrime.txt, description at http://www.statsci.org/data/general/uscrime.html ), use regression (a useful R function is lm or glm) to predict the observed crime rate in a city with the following data:**
+
+      M = 14.0
+      So = 0
+      Ed = 10.0
+      Po1 = 12.0
+      Po2 = 15.5
+      LF = 0.640
+      M.F = 94.0 Pop = 150
+      NW = 1.1
+      U1 = 0.120
+      U2 = 3.6
+      Wealth = 3200
+      Ineq = 20.1
+      Prob = 0.04
+      Time = 39.0
+
+**Show your model (factors used and their coefficients), the software output, and the quality of fit.**
+
+**Note that because there are only 47 data points and 15 predictors, you’ll probably notice some overfitting. We’ll see ways of dealing with this sort of problem later in the course.**
+
+The formula [2]:
+$$ R^2 = 1 - \frac{SS_{res}}{SS_{tot}} $$
+
+Where:
+- \( R^2 \) is the R-squared value
+- \( SS_{res} \) is the sum of squares of the residuals
+- \( SS_{tot} \) is the total sum of squares
+
+Interpretations of results:
+
+In this initial model, I did not select any independent variables or predictors; instead, I fed the entire dataset into the model to identify potential correlations. I examined the coefficients for indications of high correlations. My undergraduate professor humorously referred to the coefficient asterisks as “twinkle twinkle little stars”—the more stars, the stronger the correlation. I observed that both Ed and Ineq have two asterisks, indicating they are significantly correlated with crime rates.
+
+The residual standard error is 209.1, which reflects the model’s fitness. A lower residual standard error indicates a better fit. The multiple R-squared value is 0.8031, and the adjusted R-squared value is 0.7078. The F-statistic is 8.42. According to Dr. Sokol’s lecture, R-squared values of 0.4 or 0.5 are considered quite good. The p-value of 3.539e-07 is lower than 0.05, indicating that the model is statistically significant.
+
+```{r uscrime initially}
+# Remove all objects from the current workspace
+rm(list = ls())
+
+# Load necessary libraries
+library(DAAG)
+
+# Read the data from the specified file path into a data frame
+uscrime <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 5//uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+
+# Fit a linear model to the data with 'Crime' as the response variable and all other variables as predictors
+lm_uscrime <- lm(Crime ~ ., data = uscrime)
+
+# Display the linear model object
+lm_uscrime
+
+# Display a summary of the linear model, including coefficients, R-squared, etc.
+summary(lm_uscrime)
+
+# Check the normality of the 'Crime' variable in the dataset using a Q-Q plot
+qqnorm(uscrime$Crime)
+qqline(uscrime$Crime)
+
+# Calculate the total sum of squares (SST)
+total_sum_squared_diff <- sum((uscrime$Crime - mean(uscrime$Crime))^2)
+total_sum_squared_diff
+
+# Calculate the sum of squares of the residuals (SSE)
+sum_squared_residuals <- sum(residuals(lm_uscrime)^2)
+
+# Calculate R-squared
+r_squared <- 1 - (sum_squared_residuals / total_sum_squared_diff)
+r_squared
+
+# Perform 5-fold cross-validation
+set.seed(42)
+cv_results <- cv.lm(uscrime, lm_uscrime, m = 5)
+cv_results
+```
+
+Interpretations of results:
+
+In this improved model, I selected a subset of predictors (M, Ed, Po1, U2, Ineq, Prob) from the full list. I also conducted a cross-validation test to ensure the model’s quality. Regarding the coefficients, Ed, Po1, and Ineq are the most significant, while M is significant, and U2 and Prob are less significant. Overall, this new model demonstrates stronger correlations and coefficients compared to the initial model. The residual standard error is 200.7, which is similar to the original model’s score. The multiple R-squared value is 0.7659, slightly better than the original model’s 0.8031, and the adjusted R-squared value is 0.7307, which is higher than the original model’s 0.7078. According to Dr. Sokol’s lecture, R-squared values of 0.4 or 0.5 are considered quite good. The p-value of 3.418e-11 is lower than 0.05 (and 3.539e-07 from the first model), indicating that this model is statistically significant and more significant than the first model.
+
+
+```{r uscrime better}
+# Remove all objects from the current workspace
+rm(list = ls())
+
+# Load necessary libraries
+library(DAAG)
+
+# Read the data from the specified file path into a data frame
+uscrime <- read.table("C://Users//Clair//OneDrive//Documents//GitHub//omsa//ISYE 6501//Homework 5//uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+
+# Fit a linear model to the data with 'Crime' as the response variable and selected predictors
+lm_uscrime_2 <- lm(Crime ~ M + Ed + Po1 + U2 + Ineq + Prob, data = uscrime)
+
+# Display the linear model object
+lm_uscrime_2
+
+# Display a summary of the linear model, including coefficients, R-squared, etc.
+summary(lm_uscrime_2)
+
+# Create a new data frame with a test point for prediction
+test_point <- data.frame(M = 14.0,
+                         So = 0,
+                         Ed = 10.0,
+                         Po1 = 12.0,
+                         Po2 = 15.5,
+                         LF = 0.640,
+                         M.F = 94.0,
+                         Pop = 150,
+                         NW = 1.1,
+                         U1 = 0.120,
+                         U2 = 3.6,
+                         Wealth = 3200,
+                         Ineq = 20.1,
+                         Prob = 0.04,
+                         Time = 39.0)
+
+# Use the linear model to predict the 'Crime' value for the test point
+pred_model_2 <- predict(lm_uscrime_2, test_point)
+pred_model_2
+
+# Check the normality of the 'Crime' variable in the dataset using a Q-Q plot
+qqnorm(uscrime$Crime)
+qqline(uscrime$Crime)
+
+# Calculate the total sum of squares (SST)
+total_sum_squared_diff <- sum((uscrime$Crime - mean(uscrime$Crime))^2)
+total_sum_squared_diff
+
+# Calculate the sum of squares of the residuals (SSE)
+sum_squared_residuals_2 <- sum(residuals(lm_uscrime_2)^2)
+
+# Calculate R-squared
+r_squared_2 <- 1 - (sum_squared_residuals_2 / total_sum_squared_diff)
+r_squared_2
+
+# Perform 5-fold cross-validation
+set.seed(42)
+cv_results_2 <- cv.lm(uscrime, lm_uscrime_2, m = 5)
+cv_results_2
+```
+
+
+
+References:
+
+[1] "Microsoft CoPilot. Accessed 2024-9-22. Prompt: 'climbing frequency, training hours, rest days, body measurements, onsight difficulty are independent variables to my climbing difficulty (dependency variable) write my linear regression formula in markeddown sytnax' Generated using https://copilot.microsoft.com/."
+
+[2] "Microsoft CoPilot. Accessed 2024-9-23. Prompt: 'r squared formula in markeddown syntax' Generated using https://copilot.microsoft.com/."
+
+[3] How to Interpret Significance Codes in R? (2022, January 1). GeeksforGeeks. https://www.geeksforgeeks.org/how-to-interpret-significance-codes-in-r/
+
+[4] Zach. (2021, May 11). How to Interpret Residual Standard Error. Statology. https://www.statology.org/how-to-interpret-residual-standard-error/
