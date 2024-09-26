@@ -51,6 +51,12 @@ Where:
 - \( SS_{res} \) is the sum of squares of the residuals
 - \( SS_{tot} \) is the total sum of squares
 
+Interpretations of results:
+
+In this initial model, I did not select any independent variables or predictors; instead, I fed the entire dataset into the model to identify potential correlations. I examined the coefficients for indications of high correlations. My undergraduate professor humorously referred to the coefficient asterisks as “twinkle twinkle little stars”—the more stars, the stronger the correlation. I observed that both Ed and Ineq have two asterisks, indicating they are significantly correlated with crime rates.
+
+The residual standard error is 209.1, which reflects the model’s fitness. A lower residual standard error indicates a better fit. The multiple R-squared value is 0.8031, and the adjusted R-squared value is 0.7078. The F-statistic is 8.42. According to Dr. Sokol’s lecture, R-squared values of 0.4 or 0.5 are considered quite good. The p-value of 3.539e-07 is lower than 0.05, indicating that the model is statistically significant.
+
 ```{r uscrime initially}
 # Remove all objects from the current workspace
 rm(list = ls())
@@ -91,6 +97,9 @@ cv_results <- cv.lm(uscrime, lm_uscrime, m = 5)
 cv_results
 ```
 
+Interpretations of results:
+
+In this improved model, I selected a subset of predictors (M, Ed, Po1, U2, Ineq, Prob) from the full list. I also conducted a cross-validation test to ensure the model’s quality. Regarding the coefficients, Ed, Po1, and Ineq are the most significant, while M is significant, and U2 and Prob are less significant. Overall, this new model demonstrates stronger correlations and coefficients compared to the initial model. The residual standard error is 200.7, which is similar to the original model’s score. The multiple R-squared value is 0.7659, slightly better than the original model’s 0.8031, and the adjusted R-squared value is 0.7307, which is higher than the original model’s 0.7078. According to Dr. Sokol’s lecture, R-squared values of 0.4 or 0.5 are considered quite good. The p-value of 3.418e-11 is lower than 0.05 (and 3.539e-07 from the first model), indicating that this model is statistically significant and more significant than the first model.
 
 
 ```{r uscrime better}
@@ -162,8 +171,6 @@ References:
 
 [2] "Microsoft CoPilot. Accessed 2024-9-23. Prompt: 'r squared formula in markeddown syntax' Generated using https://copilot.microsoft.com/."
 
-[3] APA citation
+[3] How to Interpret Significance Codes in R? (2022, January 1). GeeksforGeeks. https://www.geeksforgeeks.org/how-to-interpret-significance-codes-in-r/
 
-[4] APA citation
-
-[5] APA citation
+[4] Zach. (2021, May 11). How to Interpret Residual Standard Error. Statology. https://www.statology.org/how-to-interpret-residual-standard-error/
