@@ -14,14 +14,42 @@ knitr::opts_chunk$set(echo = TRUE)
 
 answer
 ```{r code}
-#code
+# Set Up
+rm(list = ls())
+
+# Helper 
+# Install.packages("GGally") # https://ggobi.github.io/ggally/
+library(GGally)
+# Install.packages('corrplot') # https://www.rdocumentation.org/packages/corrplot/versions/0.94
+library(corrplot)
+library(DAAG)
+
+# Read In Data 
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 06/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+
+# Draw Correlations
+# Look At Reference 1
+crime_data <- cor(uscrime)
+corrplot(crime_data, method = 'circle', order = 'AOE')
+
+# Examine Some Of The Strongest Correlations - Choosing These Parameters Based On My Hw 5 Results
+# Look At Reference 2
+ggpairs(uscrime, columns = c("Ed", "Ineq", "Po1")) 
+ggpairs
+
+# PCA
+PCA = prcomp(uscrime[,1:15], scale. = TRUE)
+summary(PCA)
+
+# Eigenvector Matrix
+PCA$rotation  
 ```
 
 
 
 References:
 
-[1] APA citation
+[1] Wei, T., & Simko, V. (2021, November 18). An Introduction to corrplot Package. Cran.r-Project.org. https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html 
 
 [2] APA citation
 
