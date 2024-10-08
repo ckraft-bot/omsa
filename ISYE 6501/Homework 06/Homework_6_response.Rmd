@@ -80,44 +80,109 @@ plot(cumsum_propvvariance, xlab = 'Principal Component', ylab = 'Cumulative Prop
 PCA using prcomp
 ```{r prcomp}
 ## all from the TA
-# Get the documentation on the `prcomp` function.
+# Get the documentation on the `prcomp` function
 ?prcomp
 
-# Select the first 4 principal components from the transformed data matrix `PCA$x` and assign to `pcs`.
+# Select the first 4 principal components from the transformed data matrix `PCA$x` and assign to `pcs`
 pcs <- PCA$x[,1:4] 
 
-# Display the attributes of the `PCA$x` object, which contains the transformed data.
+# Display the attributes of the `PCA$x` object, which contains the transformed data
 attributes(PCA$x)
 
-# Print the `pcs` object, which contains the first 4 principal components of the transformed data.
+# Print the `pcs` object, which contains the first 4 principal components of the transformed data
 pcs
 
-# Compute and display the covariance matrix of the transformed data `PCA$x`.
+# Compute and display the covariance matrix of the transformed data `PCA$x`
 cov(PCA$x)
 
-# Create a diagonal matrix from the variances (which are the squares of the standard deviations) of the principal components.
+# Create a diagonal matrix from the variances (which are the squares of the standard deviations) of the principal components
 diag(PCA$sdev^2)
 
-# Print the transformed data matrix `PCA$x`.
+# Print the transformed data matrix `PCA$x`
 PCA$x
 
-# Print the `pcs` object again, which contains the first 4 principal components of the transformed data.
+# Print the `pcs` object again, which contains the first 4 principal components of the transformed data
 pcs
 
-# Calculate the correlation matrix of the transformed data `PCA$x`.
+# Calculate the correlation matrix of the transformed data `PCA$x`
 correlation <- cor(PCA$x)
 
-# Print the correlation matrix.
+# Print the correlation matrix
 correlation
 
-# Plot the correlation matrix using the `corrplot` package.
+# Plot the correlation matrix using the `corrplot` package
 corrplot(correlation)
 ```
 
-Build a regression on the first 4 PCs
+Build a regression on the first 4 PCs. Unsclae and Un
 ```{r regression}
+# Combine the first 4 principal components and the crime data (5th column) into a new data matrix
+pc_crime <- cbind(pcs, uscrime[,5]) 
 
+# Print the newly created data matrix
+pc_crime
 
+# Convert the combined data matrix to a data frame (commented out)
+# as.data.frame(pc_crime)
+
+# Fit a linear model with the crime data (5th column) as the response variable and the principal components as predictors
+model <- lm(V5 ~ ., data = as.data.frame(pc_crime))
+
+# Summarize the linear model to view the results
+summary(model)
+```
+
+```{r coefficients}
+# Get coefficients in terms of original data from PCA coefficients
+# PCA coefficients for linear regression
+
+# Extract the intercept (beta0) from the linear model coefficients.
+beta0 <- model$coefficients[1]
+
+# Extract the regression coefficients (betas) from the linear model, excluding the intercept.
+betas <- model$coefficients[2:5]
+
+# Display the intercept (beta0).
+beta0 
+
+# Display the regression coefficients (betas).
+betas
+
+# Transform PCA coefficients into coefficients for the original variables.
+# Extract the eigenvectors (rotation matrix) corresponding to the first 4 principal components.
+PCA$rotation[,1:4] # This is a 15 x 4 matrix.
+
+# Display the regression coefficients (betas) again for clarity.
+betas
+
+# Compute the regression coefficients (alphas) for the original variables by multiplying the rotation matrix and the betas.
+# This is a matrix multiplication: 15 x 4 matrix (rotation) multiplied by 4 x 1 matrix (betas) resulting in a 15 x 1 matrix (alphas).
+alphas <- PCA$rotation[,1:4] %*% betas
+
+# Transpose the resulting alphas vector to match typical output format for coefficients.
+t(alphas)
+```
+```{r original alphas/betas}
+# Calculate the original alpha coefficients by dividing alphas by the standard deviations of the original variables.
+original_alpha <- alphas / sapply(uscrime[,1:15], sd)
+
+# Get documentation on `sapply`.
+?sapply
+
+# Display the standard deviations of the original variables.
+sapply(uscrime[,1:15], sd)
+
+# Adjust the constant term (beta0) by subtracting the sum of (alphas * mean / standard deviation) for the original variables.
+original_beta0 <- beta0 - sum(alphas * sapply(uscrime[,1:15], mean) / sapply(uscrime[,1:15], sd))
+
+# Display the means of the original variables.
+sapply(uscrime[,1:15], mean)
+
+# Transpose the original alpha coefficients for better readability.
+t(original_alpha)
+
+# Display the adjusted constant term.
+original_beta0
 ```
 
 References:
