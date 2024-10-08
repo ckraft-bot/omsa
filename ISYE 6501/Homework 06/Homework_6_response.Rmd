@@ -1,0 +1,192 @@
+---
+title: "Homework_6"
+author: "Claire Kraft"
+date: "2024-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+I DID NOT SUBMIT THIS HOMEWORK AS I DID NOT COMPLETE THE ASSIGNMENT. COMMITING THIS TO THE REPO FOR MIDTERM EXAM REVIEW PURPROSES. THE CODE RESULTS AND INTERPEATIONS ARE AFTER THE 2024-10-03 THURSDAY TA SESSION.
+
+## Question 9.1
+**Using the same crime data set uscrime.txt as in Question 8.2, apply Principal Component Analysis and then create a regression model using the first few principal components. Specify your new model in terms of the original variables (not the principal components), and compare its quality to that of your solution to Question 8.2. You can use the R function prcomp for PCA. (Note that to first scale the data, you can include scale. = TRUE to scale as part of the PCA function. Don’t forget that, to make a prediction for the new city, you’ll need to unscale the coefficients (i.e., do the scaling calculation in reverse)!)**
+
+Conclusion: The TA's conclusion is that, PCA, in this case, didn't really help us build a better linear regression model as it didn't give us any stronger prediction power compared to the pre PCA model. My understanding is that the PCA's goal is to reduce dimension or sift through noise by simply pulling out the most impact features/independent variables.
+
+
+```{r set up}
+# Set up
+rm(list = ls())
+
+# Helper 
+# Install.packages("GGally") # https://ggobi.github.io/ggally/
+library(GGally)
+# Install.packages('corrplot') # https://www.rdocumentation.org/packages/corrplot/versions/0.94
+library(corrplot)
+library(DAAG)
+library(stats)
+
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 06/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+```
+
+EDA of the data to find the strongest correlations
+```{r EDA}
+# Draw correlations
+# Look at reference 1
+crime_data <- cor(uscrime)
+corrplot(crime_data, method = "circle", order = 'AOE')
+
+# Examine some of the strongest correlations- 
+# Look at reference 2
+# ggpairs(uscrime, columns = c("Ed", "Ineq", "Po1")) # Choosing These Parameters Based On My Hw 5 Results
+ggpairs(crime_data, columns = c('Crime', 'Po1', 'Po2', 'Ed', 'NW', 'Wealth', 'Ineq'))
+ggpairs
+```
+
+Performing PCA, summarizing the results, extracting the eigenvectors, and visualizing the variance explained by each principal component in a scree plot.
+```{r PCA}
+# PCA
+PCA = prcomp(uscrime[,1:15], scale. = TRUE)
+summary(PCA)
+
+# Eigenvector Matrix
+PCA$rotation  
+
+# Use the first 4 PCs
+screeplot(PCA, type = "lines", col = "blue")
+```
+
+Variance is the square of stdev
+```{r variances}
+# Calculate variances and proportion of variances
+variance <- PCA$sdev^2 
+variance
+
+# Plot the proportion of variances from PCA
+propvvariance <- variance / sum(variance)
+propvvariance
+plot(propvvariance, xlab = 'Principal Component', ylab = 'Proportion of Variances Explained')
+
+# Plot the cumulative sum proportion of variances from PCA
+cumsum_propvvariance <- cumsum(propvvariance)
+cumsum_propvvariance
+plot(cumsum_propvvariance, xlab = 'Principal Component', ylab = 'Cumulative Proportion of Variances')
+```
+
+PCA using prcomp
+```{r prcomp}
+## all from the TA
+# Get the documentation on the `prcomp` function
+?prcomp
+
+# Select the first 4 principal components from the transformed data matrix `PCA$x` and assign to `pcs`
+pcs <- PCA$x[,1:4] 
+
+# Display the attributes of the `PCA$x` object, which contains the transformed data
+attributes(PCA$x)
+
+# Print the `pcs` object, which contains the first 4 principal components of the transformed data
+pcs
+
+# Compute and display the covariance matrix of the transformed data `PCA$x`
+cov(PCA$x)
+
+# Create a diagonal matrix from the variances (which are the squares of the standard deviations) of the principal components
+diag(PCA$sdev^2)
+
+# Print the transformed data matrix `PCA$x`
+PCA$x
+
+# Print the `pcs` object again, which contains the first 4 principal components of the transformed data
+pcs
+
+# Calculate the correlation matrix of the transformed data `PCA$x`
+correlation <- cor(PCA$x)
+
+# Print the correlation matrix
+correlation
+
+# Plot the correlation matrix using the `corrplot` package
+corrplot(correlation)
+```
+
+Build a regression on the first 4 PCs. Unsclae and Un
+```{r regression}
+# Combine the first 4 principal components and the crime data (5th column) into a new data matrix
+pc_crime <- cbind(pcs, uscrime[,5]) 
+
+# Print the newly created data matrix
+pc_crime
+
+# Convert the combined data matrix to a data frame (commented out)
+# as.data.frame(pc_crime)
+
+# Fit a linear model with the crime data (5th column) as the response variable and the principal components as predictors
+model <- lm(V5 ~ ., data = as.data.frame(pc_crime))
+
+# Summarize the linear model to view the results
+summary(model)
+```
+
+```{r coefficients}
+# Get coefficients in terms of original data from PCA coefficients
+# PCA coefficients for linear regression
+
+# Extract the intercept (beta0) from the linear model coefficients.
+beta0 <- model$coefficients[1]
+
+# Extract the regression coefficients (betas) from the linear model, excluding the intercept.
+betas <- model$coefficients[2:5]
+
+# Display the intercept (beta0).
+beta0 
+
+# Display the regression coefficients (betas).
+betas
+
+# Transform PCA coefficients into coefficients for the original variables.
+# Extract the eigenvectors (rotation matrix) corresponding to the first 4 principal components.
+PCA$rotation[,1:4] # This is a 15 x 4 matrix.
+
+# Display the regression coefficients (betas) again for clarity.
+betas
+
+# Compute the regression coefficients (alphas) for the original variables by multiplying the rotation matrix and the betas.
+# This is a matrix multiplication: 15 x 4 matrix (rotation) multiplied by 4 x 1 matrix (betas) resulting in a 15 x 1 matrix (alphas).
+alphas <- PCA$rotation[,1:4] %*% betas
+
+# Transpose the resulting alphas vector to match typical output format for coefficients.
+t(alphas)
+```
+```{r original alphas/betas}
+# Calculate the original alpha coefficients by dividing alphas by the standard deviations of the original variables.
+original_alpha <- alphas / sapply(uscrime[,1:15], sd)
+
+# Get documentation on `sapply`.
+?sapply
+
+# Display the standard deviations of the original variables.
+sapply(uscrime[,1:15], sd)
+
+# Adjust the constant term (beta0) by subtracting the sum of (alphas * mean / standard deviation) for the original variables.
+original_beta0 <- beta0 - sum(alphas * sapply(uscrime[,1:15], mean) / sapply(uscrime[,1:15], sd))
+
+# Display the means of the original variables.
+sapply(uscrime[,1:15], mean)
+
+# Transpose the original alpha coefficients for better readability.
+t(original_alpha)
+
+# Display the adjusted constant term.
+original_beta0
+```
+
+References:
+
+[1] Wei, T., & Simko, V. (2021, November 18). An Introduction to corrplot Package. Cran.r-Project.org. https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html 
+
+[2] TA office hour
