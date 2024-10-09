@@ -14,24 +14,25 @@ knitr::opts_chunk$set(echo = TRUE)
 **In R, you can use the tree package or the rpart package, and the randomForest package. For each model, describe one or two qualitative takeaways you get from analyzing the results (i.e., don’t just stop when you have a good model, but interpret it too).**
 
 answer
-```{r code}
+```{r reg tree}
 #code
 ```
 
+```{r random forrest}
+#code
+```
 
 ## Question 10.2
 **Describe a situation or problem from your job, everyday life, current events, etc., for which a logistic regression model would be appropriate. List some (up to 5) predictors that you might use.**
 
 answer
-```{r code}
-#code
-```
+
 
 ### Question 10.3.1
 **Using the GermanCredit data set germancredit.txt from http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german / (description at http://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29 ), use logistic regression to find a good predictive model for whether credit applicants are good credit risks or not. Show your model (factors used and their coefficients), the software output, and the quality of fit. You can use the glm function in R. To get a logistic regression (logit) model on data where the response is either zero or one, use family=binomial(link=”logit”) in your glm function call.**
 
 answer
-```{r code}
+```{r log reg}
 #code
 ```
 
