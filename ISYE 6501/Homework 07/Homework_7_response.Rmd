@@ -25,7 +25,11 @@ answer
 ## Question 10.2
 **Describe a situation or problem from your job, everyday life, current events, etc., for which a logistic regression model would be appropriate. List some (up to 5) predictors that you might use.**
 
-answer
+Logistic regression is like linear regression except it is more useful for discrete variables. Discrete variables are like integers where the values are finite. Linear regression is good for continuous variables which are like are like floats. Some possible predictors could be 
+- Work at home (1) or go in the office (0)
+- Go climbing (1) or stay at home (0)
+- Travel abroad (1) or stay-cation (0)
+- Cook at home (1) or take out (0)
 
 
 ### Question 10.3.1
