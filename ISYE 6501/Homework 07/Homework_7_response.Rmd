@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 **In R, you can use the tree package or the rpart package, and the randomForest package. For each model, describe one or two qualitative takeaways you get from analyzing the results (i.e., don’t just stop when you have a good model, but interpret it too).**
 
 In the regression tree it seems there are 4 "generations". The children are Po1, Pop, LF, NW. In the model validation section the R^2 result is 72.445%. R^2 is the metric used to measure the fitness of the model. The closer that the R^2 gets to 100 the better fit the model is. 72% is closer to 100% os the model fits nearly perfectly. 
+
+In the random forest i chose 5 predictors. The mean of squared residuals is 84022.61 and percent of variances explained is 42.61%. The model doesn't seem that strong as the variance explainability is sub 50%. 
 ```{r reg tree}
 # Set up
 rm(list = ls())
@@ -34,7 +36,7 @@ summary(crime_tree)
 
 # Plot tree
 plot(crime_tree)
-text(crime_tree ,pretty =0)
+text(crime_tree ,pretty = 0)
 crime_tree
 ```
 
@@ -82,7 +84,7 @@ num_pred <- 5
 
 
 # Fit a random forest model
-crime_forest <- randomForest(Crime ~ ., data = uscrime, mtry = num_pred, importance = TRUE, ntree = 500)
+crime_forest <- randomForest(Crime~., data = uscrime, mtry = num_pred, importance = TRUE, ntree = 500)
 crime_forest
 
 
@@ -105,8 +107,6 @@ r2
 
 # Plot the random forest model
 # Look at reference 1 and 2
-
-
 install.packages("devtools")
 library(devtools)
 devtools::install_github('araastat/reprtree')
@@ -114,7 +114,6 @@ library(reprtree)
 
 # Plot the first tree in the random forest model
 reprtree:::plot.getTree(crime_forest, k = 1, labelVar = TRUE)
-
 ```
 
 ## Question 10.2
