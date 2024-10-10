@@ -26,16 +26,15 @@ library(tree)
 library(caret)
 library(randomForest)
 
-install.packages("devtools") # Look at reference 1 and 2
+#install.packages("devtools") # Look at reference 1 and 2
 library(devtools)
-devtools::install_github('araastat/reprtree') # Look at reference 2
+#devtools::install_github('araastat/reprtree') # Look at reference 2
 library(reprtree)
-install.packages("dplyr")
+#install.packages("dplyr")
 library(dplyr)
-install.packages("magrittr")
+#install.packages("magrittr")
 library(magrittr)
-# Install and load the pROC package
-install.packages("pROC")
+#install.packages("pROC")
 library(pROC)
 
 
