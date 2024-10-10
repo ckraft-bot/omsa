@@ -1,0 +1,188 @@
+---
+title: "Homework_7"
+author: "Claire Kraft"
+date: "2024-10-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 10.1
+**Using the same crime data set uscrime.txt as in Questions 8.2 and 9.1, find the best model you can using (a) a regression tree model, and (b) a random forest model.**
+**In R, you can use the tree package or the rpart package, and the randomForest package. For each model, describe one or two qualitative takeaways you get from analyzing the results (i.e., don’t just stop when you have a good model, but interpret it too).**
+
+In the regression tree it seems there are 4 "generations". The children are Po1, Pop, LF, NW. In the model validation section the R^2 result is 72.445%. R^2 is the metric used to measure the fitness of the model. The closer that the R^2 gets to 100 the better fit the model is. 72% is closer to 100% os the model fits nearly perfectly. 
+
+In the random forest i chose 5 predictors. The mean of squared residuals is 84022.61 and percent of variances explained is 42.61%. The model doesn't seem that strong as the variance explainability is sub 50%. But the R^2 is 90 which suggests the model fits well. Given the contradiction, poor variances explanation score (42.61) and good R^2 makes me think there could be an overfitting? Perhaps redoing the model may lead to a better result.
+```{r reg tree}
+# Set up
+rm(list = ls())
+
+# Helper 
+#install.packages("caret")
+library(tree)
+library(caret)
+library(randomForest)
+
+#install.packages("devtools") # Look at reference 1 and 2
+library(devtools)
+#devtools::install_github('araastat/reprtree') # Look at reference 2
+library(reprtree)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("magrittr")
+library(magrittr)
+#install.packages("pROC")
+library(pROC)
+
+
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+# Fit a reg tree
+crime_tree <- tree(Crime~., data = uscrime)
+summary(crime_tree)
+
+# Plot tree
+plot(crime_tree)
+text(crime_tree, pretty = 0)
+crime_tree
+```
+
+```{r eval reg}
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+# Fit a reg tree
+crime_tree <- tree(Crime~., data = uscrime)
+
+# Make predictions on the training data
+predicted_values <- predict(crime_tree, newdata = uscrime)
+summary(predicted_values)
+
+# Calculate Mean Squared Error (MSE)
+mse <- mean((uscrime$Crime - predicted_values)^2)
+mse
+
+# Calculate R-squared
+# total sum of squares
+sst <- sum((uscrime$Crime - mean(uscrime$Crime))^2)
+sst
+
+# sum of suqare errors
+sse <- sum((uscrime$Crime - predicted_values)^2)
+sse
+
+r2 <- 1 - (sse / sst) #1- 1895722/40334.5
+r2
+```
+
+```{r random forrest}
+# Set up
+rm(list = ls())
+
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+
+# Set seed for reproducibility
+set.seed(123)
+num_pred <- 5
+
+
+# Fit a random forest model
+crime_forest <- randomForest(Crime~., data = uscrime, mtry = num_pred, importance = TRUE, ntree = 500)
+crime_forest
+
+
+# Make predictions on the training data
+crime_forest_pred <- predict(crime_forest, newdata = uscrime)
+
+
+# Calculate R-squared
+# Calculate Total Sum of Squares (SST)
+sst <- sum((uscrime$Crime - mean(uscrime$Crime))^2)
+sst
+
+# Calculate Sum of Squared Errors (SSE)
+sse <- sum((crime_forest_pred - uscrime$Crime)^2)
+sse
+
+# Calculate R-squared
+r2 <- 1 - (sse / sst)
+r2
+
+# Plot the random forest model
+reprtree:::plot.getTree(crime_forest, k = 1, labelVar = TRUE) # Look at reference 1
+```
+
+## Question 10.2
+**Describe a situation or problem from your job, everyday life, current events, etc., for which a logistic regression model would be appropriate. List some (up to 5) predictors that you might use.**
+
+Logistic regression is like linear regression except it is more useful for discrete variables. Discrete variables are like integers where the values are finite. Linear regression is good for continuous variables which are like are like floats. Some possible predictors could be 
+- Work at home (1) or go in the office (0)
+- Go climbing (1) or stay at home (0)
+- Travel abroad (1) or stay-cation (0)
+- Cook at home (1) or take out (0)
+
+
+### Question 10.3.1
+**Using the GermanCredit data set germancredit.txt from http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german / (description at http://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29 ), use logistic regression to find a good predictive model for whether credit applicants are good credit risks or not. Show your model (factors used and their coefficients), the software output, and the quality of fit. You can use the glm function in R. To get a logistic regression (logit) model on data where the response is either zero or one, use family=binomial(link=”logit”) in your glm function call.**
+
+Wow most variables are irrelevant. There is only ne with the twinkle twinkle stars meaning they carry some level of statistical significance. So i will just extract variable V14A143. Looking at the ROC .8 looks to be the appropriate threshold.
+```{r german credit log reg}
+# Set up
+rm(list = ls())
+
+# Read in data
+ger_credit <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/german_credit.txt")
+
+# Convert variables to binary
+ger_credit$V21[ger_credit$V21==1]<-0
+ger_credit$V21[ger_credit$V21==2]<-1
+head(ger_credit)
+
+# Split data
+ger_credit_train <- ger_credit[1:700,]
+ger_credit_test <- ger_credit[701:1000,]
+table(ger_credit_train$V21)
+table(ger_credit_test$V21)
+
+# Create logistical regression model
+ger_credit_logreg = glm(V21~., data = ger_credit_train, family = binomial(link = "logit"))
+summary(ger_credit_logreg) 
+
+# get the probability for each data point
+fitted = predict(ger_credit_logreg, type = 'response')%>%as.data.frame()
+fitted
+
+# plot the ROC
+# Look at reference 4
+datas = data.frame(orignial = ger_credit_train$V21, prob=fitted$.)
+roc = roc(orignial~prob, data = datas)
+plot(roc)
+```
+
+### Question 10.3.2
+**Because the model gives a result between 0 and 1, it requires setting a threshold probability to separate between “good” and “bad” answers. In this data set, they estimate that incorrectly identifying a bad customer as good, is 5 times worse than incorrectly classifying a good customer as bad. Determine a good threshold probability based on your model.**
+
+
+Looking at the ROC .8 looks to be the appropriate threshold.
+
+
+References:
+
+[1] alejandro_hagan. (2024). How to visualize random forest model output in R? Stack Overflow. https://stackoverflow.com/questions/73898275/how-to-visualize-random-forest-model-output-in-r
+
+[2] araastat. (2018, July 17). Error in library(“reprtree”) : there is no package called “reprtree” · Issue #12 · araastat/reprtree. GitHub. https://github.com/araastat/reprtree/issues/12
+
+[3] Hofmann, H. (1994). Statlog (German Credit Data) [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5NC77.
+
+[4] roc function - RDocumentation. (n.d.). Www.rdocumentation.org. https://www.rdocumentation.org/packages/pROC/versions/1.18.5/topics/roc
+
+[5] APA citation
