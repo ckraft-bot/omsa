@@ -159,7 +159,7 @@ summary(ger_credit_logreg)
 
 # get the probability for each data point
 fitted = predict(ger_credit_logreg, type = 'response')%>%as.data.frame()
-fitted
+#fitted
 
 # plot the ROC
 # Look at reference 4
@@ -172,7 +172,7 @@ plot(roc)
 **Because the model gives a result between 0 and 1, it requires setting a threshold probability to separate between “good” and “bad” answers. In this data set, they estimate that incorrectly identifying a bad customer as good, is 5 times worse than incorrectly classifying a good customer as bad. Determine a good threshold probability based on your model.**
 
 
-Looking at the ROC .8 looks to be the appropriate threshold.
+Looking at the ROC 8 looks to be the appropriate threshold.
 
 
 References:
