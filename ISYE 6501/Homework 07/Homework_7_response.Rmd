@@ -19,9 +19,10 @@ In the regression tree it seems there are 4 "generations". The children are Po1,
 rm(list = ls())
 
 # Helper 
-library(tree)
 #install.packages("caret")
+library(tree)
 library(caret)
+library(randomForest)
 
 # Read in data
 uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
@@ -54,13 +55,15 @@ mse <- mean((uscrime$Crime - predicted_values)^2)
 mse
 
 # Calculate R-squared
+# total sum of squares
 sst <- sum((uscrime$Crime - mean(uscrime$Crime))^2)
 sst
 
+# sum of suqare errors
 sse <- sum((uscrime$Crime - predicted_values)^2)
 sse
 
-r2 <- 1 - (sse / sst) #1- 6880928/40334.5
+r2 <- 1 - (sse / sst) #1- 1895722/40334.5
 r2
 ```
 
@@ -68,30 +71,49 @@ r2
 # Set up
 rm(list = ls())
 
-# Set seed for reproducibility.
-set.seed(478)
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
 
-# Train a regression model using 5-fold cross-validation.
-cvrm <- train(Crime ~ ., data = uscrime,
-              trControl = trainControl(method = 'cv', number = 5, savePredictions = TRUE),
-              tuneGrid = expand.grid(mtry = 1:15))
-cvrm
-# Print the trained cross-validated regression model.
 
-# Calculate the sum of squared errors (SSE) for the regression model.
-SSErm <- sum((cvrm$pred[,2] - cvrm$pred[,1])^2)
-SSErm
-# Print the SSE.
+# Set seed for reproducibility
+set.seed(123)
+num_pred <- 5
 
-# Calculate the total sum of squares (SST) for the regression model.
-SSTrm <- sum((cvrm$pred[,2] - mean(cvrm$pred[,2]))^2)
-SSTrm
-# Print the SST.
 
-# Calculate the R-squared value for the regression model.
-r2 <- 1 - (SSErm / SSTrm)
+# Fit a random forest model
+crime_forest <- randomForest(Crime ~ ., data = uscrime, mtry = num_pred, importance = TRUE, ntree = 500)
+crime_forest
+
+
+# Make predictions on the training data
+crime_forest_pred <- predict(crime_forest, newdata = uscrime)
+
+
+# Calculate R-squared
+# Calculate Total Sum of Squares (SST)
+sst <- sum((uscrime$Crime - mean(uscrime$Crime))^2)
+sst
+
+# Calculate Sum of Squared Errors (SSE)
+sse <- sum((crime_forest_pred - uscrime$Crime)^2)
+sse
+
+# Calculate R-squared
+r2 <- 1 - (sse / sst)
 r2
-# Print the R-squared value.
+
+# Plot the random forest model
+# Look at reference 1 and 2
+
+
+install.packages("devtools")
+library(devtools)
+devtools::install_github('araastat/reprtree')
+library(reprtree)
+
+# Plot the first tree in the random forest model
+reprtree:::plot.getTree(crime_forest, k = 1, labelVar = TRUE)
 
 ```
 
@@ -124,9 +146,9 @@ answer
 
 References:
 
-[1] APA citation
+[1] alejandro_hagan. (2024). How to visualize random forest model output in R? Stack Overflow. https://stackoverflow.com/questions/73898275/how-to-visualize-random-forest-model-output-in-r
 
-[2] APA citation
+[2] araastat. (2018, July 17). Error in library(“reprtree”) : there is no package called “reprtree” · Issue #12 · araastat/reprtree. GitHub. https://github.com/araastat/reprtree/issues/12
 
 [3] APA citation
 
