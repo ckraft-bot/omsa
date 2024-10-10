@@ -13,13 +13,86 @@ knitr::opts_chunk$set(echo = TRUE)
 **Using the same crime data set uscrime.txt as in Questions 8.2 and 9.1, find the best model you can using (a) a regression tree model, and (b) a random forest model.**
 **In R, you can use the tree package or the rpart package, and the randomForest package. For each model, describe one or two qualitative takeaways you get from analyzing the results (i.e., don’t just stop when you have a good model, but interpret it too).**
 
-answer
+In the regression tree it seems there are 4 "generations". The children are Po1, Pop, LF, NW. In the model validation section the R^2 result is 72.445%. R^2 is the metric used to measure the fitness of the model. The closer that the R^2 gets to 100 the better fit the model is. 72% is closer to 100% os the model fits nearly perfectly. 
 ```{r reg tree}
-#code
+# Set up
+rm(list = ls())
+
+# Helper 
+library(tree)
+#install.packages("caret")
+library(caret)
+
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+# Fit a reg tree
+crime_tree <- tree(Crime~., data = uscrime)
+summary(crime_tree)
+
+# Plot tree
+plot(crime_tree)
+text(crime_tree ,pretty =0)
+crime_tree
+```
+
+```{r eval reg}
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 07/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+# Fit a reg tree
+crime_tree <- tree(Crime~., data = uscrime)
+
+# nMake predictions on the training data
+predicted_values <- predict(crime_tree, newdata = uscrime)
+summary(predicted_values)
+
+# Calculate Mean Squared Error (MSE)
+mse <- mean((uscrime$Crime - predicted_values)^2)
+mse
+
+# Calculate R-squared
+sst <- sum((uscrime$Crime - mean(uscrime$Crime))^2)
+sst
+
+sse <- sum((uscrime$Crime - predicted_values)^2)
+sse
+
+r2 <- 1 - (sse / sst) #1- 6880928/40334.5
+r2
 ```
 
 ```{r random forrest}
-#code
+# Set up
+rm(list = ls())
+
+# Set seed for reproducibility.
+set.seed(478)
+
+# Train a regression model using 5-fold cross-validation.
+cvrm <- train(Crime ~ ., data = uscrime,
+              trControl = trainControl(method = 'cv', number = 5, savePredictions = TRUE),
+              tuneGrid = expand.grid(mtry = 1:15))
+cvrm
+# Print the trained cross-validated regression model.
+
+# Calculate the sum of squared errors (SSE) for the regression model.
+SSErm <- sum((cvrm$pred[,2] - cvrm$pred[,1])^2)
+SSErm
+# Print the SSE.
+
+# Calculate the total sum of squares (SST) for the regression model.
+SSTrm <- sum((cvrm$pred[,2] - mean(cvrm$pred[,2]))^2)
+SSTrm
+# Print the SST.
+
+# Calculate the R-squared value for the regression model.
+r2 <- 1 - (SSErm / SSTrm)
+r2
+# Print the R-squared value.
+
 ```
 
 ## Question 10.2
