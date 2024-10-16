@@ -1,0 +1,283 @@
+---
+title: "Homework_8"
+author: "Claire Kraft"
+date: "2024-10-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 11.1
+**Using the crime data set uscrime.txt from Questions 8.2, 9.1, and 10.1, build a regression model using:**
+
+1. **Stepwise regression**
+2. **Lasso**
+3. **Elastic net**
+
+**For Parts 2 and 3, remember to scale the data first – otherwise, the regression coefficients will be on different scales and the constraint won’t have the desired effect.**
+
+**For Parts 2 and 3, use the glmnet function in R.**
+
+
+
+In Stepwise regression I first created a regression that takes in all factors to find highly correlative factors. I think in a previous homework we did a similar exercise to extract the best factors. I don't recall what those factors were but based on the results from this code snippet, the best factors were _Ed_ and _M.f_ which have p-values of 0.1 or better. After running the R Squares on the forward and backward models, the results came out to be 0.1446551 meaning there is a 14.47% variance. I'm going to pull in a few more factors (Ed + M.F + Po1 + Po2 + Ineq) to see how the performance compares. The R Squared result did jump up to 0.7304136 or 73.04% variance. This lm_broad model seems more robust. 
+
+```{r shelper}
+# Helper 
+#install.packages("glmnet")
+library(ggplot2)
+library(glmnet)
+library(tree)
+```
+
+```{r stepwise reg}
+# Set up
+rm(list = ls())
+
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 08/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+# Set seed for reproducibility
+set.seed(123)
+# 70% of the data
+train_size <- floor(0.70 * nrow(uscrime))
+
+# Randomly sample indices for the training set
+train_indices <- sample(seq_len(nrow(uscrime)), size = train_size)
+
+# Split the data into training and test sets - 70/30
+train_data <- uscrime[train_indices, ]
+test_data <- uscrime[-train_indices, ]
+
+# Display the dimensions of the training and test sets
+dim(train_data) # Should be approximately 33 x 16
+dim(test_data)  # Should be approximately 14 x 16
+
+#-------------------------- Stepwise reg - lm_slim
+# Fit model
+lm_everything <- lm(train_data$Crime ~., train_data[1:15])
+# Find high correlations by taking in all factors
+lm_everything_summary <- summary(lm_everything)
+# Look for twinkle twinkle stars
+print(lm_everything_summary)
+
+# Forward and backward
+# Look at reference 1
+lm_slim <- lm(Crime ~ Ed + M.F, data = train_data)
+# Should be highly correlative
+lm_slim_summary <- summary(lm_slim)
+# Look for twinkle twinkle stars
+print(lm_slim_summary)
+
+
+forward <- step(lm_slim, direction = 'forward', scope = formula(~ .))
+forward
+backward <- step(lm_slim, direction = 'backward', trace = 0)
+backward
+
+# Predict on the training data
+predictions_slim <- predict(lm_slim, newdata = train_data)
+
+# Calculate the total sum of squares (SST)
+# Look at reference 2
+sst_slim <- sum((train_data$Crime - mean(train_data$Crime))^2)
+
+# Calculate the sum of squared errors (SSE)
+# Look at reference 2
+sse_slim <- sum((train_data$Crime - predictions_slim)^2)
+
+# Calculate R-squared
+# Look at reference 2
+r2_slim <- 1 - (sse_slim / sst_slim)
+r2_slim
+
+
+#-------------------------- Stepwise reg - lm_broad
+# Forward and backward
+# Look at reference 1
+lm_broad <- lm(Crime ~ Ed + M.F + Po1 + Po2 + Ineq, data = train_data)
+# Should be highly correlative
+lm_broad_summary <- summary(lm_broad)
+# Look for twinkle twinkle stars
+print(lm_broad_summary)
+
+
+forward <- step(lm_broad, direction = 'forward', scope = formula(~ .))
+forward
+backward <- step(lm_broad, direction = 'backward', trace = 0)
+backward
+
+
+# Predict on the training data
+predictions_broad <- predict(lm_broad, newdata = train_data)
+
+# Calculate the total sum of squares (SST)
+# Look at reference 2
+sst_broad <- sum((train_data$Crime - mean(train_data$Crime))^2)
+
+# Calculate the sum of squared errors (SSE)
+# Look at reference 2
+sse_broad <- sum((train_data$Crime - predictions_broad)^2)
+
+# Calculate R-squared
+# Look at reference 2
+r2_broad <- 1 - (sse_broad / sst_broad)
+r2_broad
+```
+
+
+
+```{r lasso}
+# Set up
+rm(list = ls())
+# Clear the workspace by removing all objects from the environment.
+
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 08/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+# Scale data
+uscrime_scaled <- data.frame(scale(uscrime[1:15]), Crime = uscrime$Crime)
+head(uscrime_scaled)
+
+
+# Set seed for reproducibility
+set.seed(123)
+
+# 70% of the data
+train_size <- floor(0.70 * nrow(uscrime_scaled))
+
+# Randomly sample indices for the training set
+train_indices <- sample(seq_len(nrow(uscrime_scaled)), size = train_size)
+
+# Split the data into training and test sets - 70/30
+train_data <- uscrime_scaled[train_indices, ]
+test_data <- uscrime_scaled[-train_indices, ]
+
+
+# Display the dimensions of the training and test sets
+dim(train_data) # Should be approximately 33 x 16
+dim(test_data)  # Should be approximately 14 x 16
+
+# Load necessary library
+library(glmnet)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Prepare the data
+x <- as.matrix(uscrime_scaled[,-16]) # Features
+y <- as.matrix(uscrime_scaled[,16])  # Response (Crime)
+
+# Fit the LASSO model with cross-validation
+lasso_model <- cv.glmnet(x = x,
+                         y = y,
+                         alpha = 1,              # Alpha = 1 for LASSO
+                         nfolds = 10,            # 10-fold cross-validation
+                         nlambda = 20,           # Number of lambda values
+                         type.measure = 'mse',   # Mean Squared Error
+                         family = 'gaussian',    # Regression (as opposed to classification)
+                         standardize = TRUE)     # Standardize features
+
+# Display the best lambda value
+best_lambda <- lasso_model$lambda.min
+best_lambda
+
+# Produce a plot of test MSE by lambda value
+plot(lasso_model)
+
+# Display the best lambda value
+lasso_model$lambda.min
+
+# Display lambda, cross-validated MSE, and number of non-zero coefficients
+cbind(lasso_model$lambda, lasso_model$cvm, lasso_model$nzero)
+
+# Display coefficients at the best lambda value
+coef(lasso_model, s = lasso_model$lambda.min)
+
+```
+
+```{r elasntic net}
+# Set up
+rm(list = ls())
+# Clear the workspace by removing all objects from the environment.
+
+# Read in data
+uscrime <- read.table("~/GitHub/omsa/ISYE 6501/Homework 08/uscrime.txt", stringsAsFactors = FALSE, header = TRUE)
+head(uscrime)
+
+# Scale data
+uscrime_scaled <- data.frame(scale(uscrime[1:15]), Crime = uscrime$Crime)
+head(uscrime_scaled)
+
+
+# Set seed for reproducibility
+set.seed(123)
+
+# 70% of the data
+train_size <- floor(0.70 * nrow(uscrime_scaled))
+
+# Randomly sample indices for the training set
+train_indices <- sample(seq_len(nrow(uscrime_scaled)), size = train_size)
+
+# Split the data into training and test sets - 70/30
+train_data <- uscrime_scaled[train_indices, ]
+test_data <- uscrime_scaled[-train_indices, ]
+
+
+# Display the dimensions of the training and test sets
+dim(train_data) # Should be approximately 33 x 16
+dim(test_data)  # Should be approximately 14 x 16
+
+# Load necessary library
+library(glmnet)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Prepare the data
+x <- as.matrix(uscrime_scaled[,-16]) # Features
+y <- as.matrix(uscrime_scaled[,16])  # Response (Crime)
+
+# Look at reference 4
+elastic_net_model <- glmnet(x, y)
+plot(elastic_net_model)
+coef(elastic_net_model, s = 0.1)
+
+#set.seed(123)
+#nx <- matrix(rnorm(5 * 15), 5, 15)
+#predict(elastic_net_model, newx = nx, s = c(0.1, 0.05))
+
+elastic_net_model_cv <- cv.glmnet(x, y)
+plot(elastic_net_model_cv)
+
+# Display the best lambda value
+best_lambda <- elastic_net_model_cv$lambda.min
+best_lambda
+
+# Display the best lambda value
+elastic_net_model_cv$lambda.min
+
+# Display lambda, cross-validated MSE, and number of non-zero coefficients
+cbind(elastic_net_model_cv$lambda, elastic_net_model_cv$cvm, elastic_net_model_cv$nzero)
+
+# Display coefficients at the best lambda value
+coef(elastic_net_model_cv, s = elastic_net_model_cv$lambda.min)
+
+```
+
+
+References:
+
+[1] Sanderson, S. P. (2023, December 6). Steve’s Data Tips and Tricks - A Complete Guide to Stepwise Regression in R. Steve’s Data Tips and Tricks. https://www.spsanderson.com/steveondata/posts/2023-12-06/index.html
+
+[2] Function to calculate R2 (R-squared) in R. (n.d.). Stack Overflow. https://stackoverflow.com/questions/40901445/function-to-calculate-r2-r-squared-in-r
+
+[3] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-15. Prompt: ‘Add comments to my lines of code.’ Generated using https://www.microsoft.com.”
+
+[4] Hastie , T., Qian, J., & Tay, K. (2023, March 27). An Introduction to `glmnet`. Glmnet.stanford.edu. https://glmnet.stanford.edu/articles/glmnet.html
+
+[5] APA citation
