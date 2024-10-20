@@ -1,0 +1,55 @@
+---
+title: "Homework_x"
+author: "Claire Kraft"
+date: "2024-MM-DD"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 5.1
+**Question**
+
+answer
+```{r code}
+#code
+```
+
+
+## Question 6.1
+**Question**
+
+answer
+```{r code}
+#code
+```
+
+### Question 6.2.1
+**Question**
+
+answer
+```{r code}
+#code
+```
+
+### Question 6.2.2
+**Question**
+
+answer
+```{r code}
+#code
+```
+
+References:
+
+[1] APA citation
+
+[2] APA citation
+
+[3] APA citation
+
+[4] APA citation
+
+[5] APA citation
