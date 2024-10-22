@@ -20,21 +20,25 @@ Assuming there are no special events or holidays that may change the ordinary tr
 ## Question 12.2
 **To determine the value of 10 different yes/no features to the market value of a house (large yard, solar roof, etc.), a real estate agent plans to survey 50 potential buyers, showing a fictitious house with different combinations of features. To reduce the survey size, the agent wants to show just 16 fictitious houses. Use R’s FrF2 function (in the FrF2 package) to find a fractional factorial design for this experiment: what set of features should each of the 16 fictitious houses have? Note: the output of FrF2 is “1” (include) or “-1” (don’t include) for each feature.**
 
-answer
-```{r features}
-#install.packages("FrF2")
-library(FrF2) 
+For house features I googled house features and Zillow [1] had a blog post listing some features that help with premium or selling speed (reducing the time a house is on the market). Those features are bucketed into broader categories: high end cooking, open floor plan, updated kitchen, hardwood floors, large yard, good schools, modern bathrooms, energy efficient, walk-in closets, move in ready.
 
+```{r features}
+# Install and load FrF2 package if not already done
+#install.packages("FrF2")
+library(FrF2)
+
+# Clear the workspace
 rm(list = ls())
+
+# Set seed for reproducibility
 set.seed(1)
 
+# Define features based on Zillow's research
+features <- c("high_end_cooking", "open_floor_plan", "updated_kitchen", "hardwood_floors", "large_yard", "good_schools", "modern_bathrooms", "energy_efficient", "walkin_closets", "move_in_ready")
 
-?FrF2 # Function to provide regular Fractional Factorial 2-level designs
-
-
-library('FrF2')
-house_features <- FrF2(nruns = 16, nfactors = 10)
-house_features
+# Generate the fractional factorial design
+house_features_design <- FrF2(nruns = 16, factor.names = features)
+house_features_design
 ```
 
 ### Question 13.1
@@ -62,12 +66,12 @@ Like in SQL one-to-many relationship vs many-to-many relationships. It's simpler
 
 References:
 
-[1] APA citation
+[1] Tucker, J. (2019, April 19). Listing Features That Sell: If You’ve Got These, Flaunt Them. Zillow. https://www.zillow.com/research/listing-features-that-sell-23814/
 
-[2] APA citation
+[2] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-15. Prompt: ‘Add comments to my lines of code.’ Generated using https://www.microsoft.com.”
 
-[3] APA citation
+[3] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-15. Prompt: ‘using my single queue simulation code as inpiration to generate similar code but for two queue system.’ Generated using https://www.microsoft.com.”
 
-[4] APA citation
+[4] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-15. Prompt: ‘Look at my code, do not modify the code. Just understand the code and create a markeddown documentation for the code.’ Generated using https://www.microsoft.com.”
 
 [5] APA citation
