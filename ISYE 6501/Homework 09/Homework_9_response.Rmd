@@ -22,7 +22,19 @@ Assuming there are no special events or holidays that may change the ordinary tr
 
 answer
 ```{r features}
-#code
+#install.packages("FrF2")
+library(FrF2) 
+
+rm(list = ls())
+set.seed(1)
+
+
+?FrF2 # Function to provide regular Fractional Factorial 2-level designs
+
+
+library('FrF2')
+house_features <- FrF2(nruns = 16, nfactors = 10)
+house_features
 ```
 
 ### Question 13.1
