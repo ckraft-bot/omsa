@@ -34,17 +34,17 @@ answer
 ## Question 15.1
 **Describe a situation or problem from your job, everyday life, current events, etc., for which optimization would be appropriate. What data would you need?**
 
-answer
-```{r code 2}
-#code2
-```
+
+
+Optimization is used in descriptive and predictive analytics [1] and there are three parts to it - variables, constraints, and objective function [2]. In November I will be supporting my sister in the NYC Marathon. Applying these three parts to my NYC Marathon cheering strategy, the goal or _objective function_ is to maximize the number of times I can cheer her without missing her. The key _variables_ are the mile markers (where I can stand and cheer). _Constraints_ include traffic, public transportation schedules, and crowd density, which can all affect my adherence to my cheering strategy.
+
 
 
 References:
 
-[1] APA citation
+[1] Lecture 1 slides
 
-[2] APA citation
+[2] Lecture 3 slides
 
 [3] APA citation
 
