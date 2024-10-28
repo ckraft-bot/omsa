@@ -1,0 +1,53 @@
+---
+title: "Homework_10"
+author: "Claire Kraft"
+date: "2024-10-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 14.1
+
+**The breast cancer data set breast-cancer-wisconsin.data.txt from [UCI Repository](http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/) (description at [UCI Dataset Description](http://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Original%29)) has missing values.**
+
+1. **Use the mean/mode imputation method to impute values for the missing data.**
+
+2. **Use regression to impute values for the missing data.**
+
+3. **Use regression with perturbation to impute values for the missing data.**
+
+4. **(Optional) Compare the results and quality of classification models (e.g., SVM, KNN) built using**  
+   **(1) the data sets from questions 1, 2, 3;**  
+   **(2) the data that remains after data points with missing values are removed;**  
+   **(3) the data set when a binary variable is introduced to indicate missing values.**
+
+  
+answer
+```{r code1}
+#code1
+```
+
+
+## Question 15.1
+**Describe a situation or problem from your job, everyday life, current events, etc., for which optimization would be appropriate. What data would you need?**
+
+answer
+```{r code 2}
+#code2
+```
+
+
+References:
+
+[1] APA citation
+
+[2] APA citation
+
+[3] APA citation
+
+[4] APA citation
+
+[5] APA citation
