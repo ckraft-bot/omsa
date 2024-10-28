@@ -25,9 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
    **(3) the data set when a binary variable is introduced to indicate missing values.**
 
   
-Went to the description [URL](http://archive.ics.uci.edu/dataset/15/breast+cancer+wisconsin+original) to understand the schema of the table. Column 11 is "Class" and the datatype is binary. If the value is 2 then it's benign and if the value is 4 then it's malignant. According to the aggregation, there 241 malignant and 458 benign cases. There are 691 total missing data points in my dataset. The BareNuclei column has 2.2% of the data (with N of 16) missing.
-
-There is a strong correlation between the cell size and shape.
+Went to the description [URL](http://archive.ics.uci.edu/dataset/15/breast+cancer+wisconsin+original) to understand the schema of the table. Column 11 is "Class" and the datatype is binary. If the value is 2 then it's benign and if the value is 4 then it's malignant. According to the aggregation, there 241 malignant and 458 benign cases. There are 691 total missing data points in my dataset. The BareNuclei column has 2.2% of the data (with N of 16) missing. There is a strong correlation between the cell size and shape. After the EDA I imputed the missing values using mean, mode, regression and regression with perturbation.
 
 ```{r breast cancer}
 # Library imports
@@ -110,6 +108,32 @@ print(sprintf("Percent of missing observation = %0.3f", 16/nrow(df_cleaning)*100
 # Visualize missing values
 vis_miss(df_cleaning)
 ```
+```{r breast cancer - cleaning: correlation}
+# Look at reference 4
+# Correlation viz
+df_cleaning_x <- select_if(df_cleaning, is.numeric)
+cor(df_cleaning_x)
+vis_cor(df_cleaning_x)
+
+
+# Change Diagnosis from integer to factor
+df_cleaning$Diagnosis <- as.factor(df_cleaning$Diagnosis)
+
+pairwise <- ggpairs(df_cleaning, columns = 1:10, ggplot2::aes(colour = Diagnosis), lower=list(combo=wrap("facethist", binwidth=0.5)))
+pairwise
+```
+
+```{r breast cancer - cleaning: skewness}
+# Look at reference 4
+skew(df_cleaning_x)
+
+
+df_cleaning %>%
+  add_prop_miss() %>%
+  rpart(prop_miss_all ~ ., data=.) %>%
+  prp(type=4, extra = 101, roundint=FALSE, prefix="Prop.Miss = ")
+```
+
 ### Imputation - mean/mode
 ```{r breast cancer - cleaning: mean imputation}
 #---------------------- Mean imputation
@@ -141,37 +165,22 @@ head(df_cleaning.mode,24)
 ```{r reg}
 set.seed(123)
 
-newdata<-df_cleaning
-missing.index<-which(is.na(newdata$BareNuclei), arr.ind=TRUE)
-newdata.1 <- newdata[-missing.index,2:10] # all other predictors data points except for the missing value and response variable
-model <- lm(BareNuclei~ClumpThickness+CellSize+CellShape+Adhesion+SingleEpithelialSize+BlandChromatin+NormalNucleoli+Mitoses,data=newdata.1 )
-summary(model)
+new_data<-df_cleaning
+missing.index<-which(is.na(new_data$BareNuclei), arr.ind=TRUE)
+new_data.1 <- new_data[-missing.index,2:10] 
+reg_model <- lm(BareNuclei~ClumpThickness+CellSize+CellShape+Adhesion+SingleEpithelialSize+BlandChromatin+NormalNucleoli+Mitoses,data=new_data.1 )
+summary(reg_model)
 ```
 
+### Imputation - perturbation
+```{r reg with perturbation}
+set.seed(123)
 
-```{r breast cancer - cleaning: correlation}
-# Correlation viz
-df_cleaning_x <- select_if(df_cleaning, is.numeric)
-cor(df_cleaning_x)
-vis_cor(df_cleaning_x)
+# code
 
 
-# Change Diagnosis from integer to factor
-df_cleaning$Diagnosis <- as.factor(df_cleaning$Diagnosis)
-
-pairwise <- ggpairs(df_cleaning, columns = 1:10, ggplot2::aes(colour = Diagnosis), lower=list(combo=wrap("facethist", binwidth=0.5)))
-pairwise
 ```
-```{r breast cancer - cleaning: skewness}
-################# Skewness
-skew(df_cleaning_x)
 
-
-df_cleaning %>%
-  add_prop_miss() %>%
-  rpart(prop_miss_all ~ ., data=.) %>%
-  prp(type=4, extra = 101, roundint=FALSE, prefix="Prop.Miss = ")
-```
 
 
 ## Question 15.1
@@ -189,6 +198,6 @@ References:
 
 [3] R - Mean, Median and Mode - Tutorialspoint. (2019). Tutorialspoint.com. https://www.tutorialspoint.com/r/r_mean_median_mode.htm
 
-[4] APA citation
+[4] RPubs - Vaar R Notebook: Breast Cancer Wisconsin Original. (2023, August 12). Rpubs.com. https://rpubs.com/bi23le/1070975
 
 [5] APA citation
