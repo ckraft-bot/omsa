@@ -389,9 +389,25 @@ data missing. There is a strong correlation between cell size and
 shape.</p>
 <p>After performing exploratory data analysis, I imputed the missing
 values using mean, mode, regression, and regression with perturbation
-methods. For mean and mode imputation, I calculated the mean of the
-BareNuclei column, ignoring the null values, and then replaced the null
-values with the computations. This was repeated for mode as well.</p>
+methods. - For the <em>mean</em> imputation, I calculated the mean of
+the <code>BareNuclei</code> column, ignoring the null values, and then
+replaced the null values with the computations. I repeated the same
+steps for <em>mode</em> imputation.</p>
+<ul>
+<li><p>For the <em>regression</em> imputation, I used the observed
+values of <code>BareNuclei</code> as the dependent variable. The
+remaining columns became the independent variables. This is a more
+advanced method, compared to just mean and mode imputations, as it
+considers the relationship of the dependent and independent variables to
+impute the missing values [6].</p></li>
+<li><p>A drawback of regression imputation is that it does not capture
+all the variability. <em>Perturbation</em> adds variability [2]. The
+beginning steps of this method are similar to the regression imputation:
+build the model and predict the missing values. Then I use the
+<code>rnorm</code> function to add “noise” to mimic natural variation.
+Finally, I replace the missing values with the predictions and
+noise.</p></li>
+</ul>
 <pre class="r"><code># Library imports
 library(tidyverse)</code></pre>
 <pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
@@ -1061,6 +1077,9 @@ Prompt: ‘Add comments to my lines of code.’ Generated using <a href="https:/
 <p>[5] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-29.
 Prompt: ‘Here’s my code, read it, understand it, then write a concise
 explanation the steps in rmd format.’ Generated using <a href="https://www.microsoft.com" class="uri">https://www.microsoft.com</a>.”</p>
+<p>[6] Learn how to fill in missing values for regression analysis using
+different imputation methods and R. Compare the advantages and
+disadvantages of each method. (2023, September 27). Linkedin.com. <a href="https://www.linkedin.com/advice/0/how-can-you-impute-missing-data-regression-analysis" class="uri">https://www.linkedin.com/advice/0/how-can-you-impute-missing-data-regression-analysis</a></p>
 </div>
 
 
