@@ -1,0 +1,290 @@
+---
+title: "Homework_10"
+author: "Claire Kraft"
+date: "2024-10-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 14.1
+
+**The breast cancer data set breast-cancer-wisconsin.data.txt from [UCI Repository](http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/) (description at [UCI Dataset Description](http://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Original%29)) has missing values.**
+
+1. **Use the mean/mode imputation method to impute values for the missing data.**
+
+2. **Use regression to impute values for the missing data.**
+
+3. **Use regression with perturbation to impute values for the missing data.**
+
+4. **(Optional) Compare the results and quality of classification models (e.g., SVM, KNN) built using**  
+   **(1) the data sets from questions 1, 2, 3;**  
+   **(2) the data that remains after data points with missing values are removed;**  
+   **(3) the data set when a binary variable is introduced to indicate missing values.**
+
+  
+Went to the description at [UCI Dataset Description](http://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Original%29) URL to understand the schema of the table. Column 11 is "Class" and the datatype is binary. If the value is 2, it indicates benign, and if the value is 4, it indicates malignant. According to the aggregation results, there are 241 malignant and 458 benign cases. The dataset contains a total of 691 missing data points. Column 7, is later renamed as "BareNuclei", has 2.29% (with N=16) of its data missing. There is a strong correlation between cell size and shape.
+
+After performing exploratory data analysis, I imputed the missing values using mean, mode, regression, and regression with perturbation methods.
+
+- For the _mean_ imputation, I calculated the mean of the `BareNuclei` column, ignoring the null values, and then replaced the null values with the computations. I repeated the same steps for _mode_ imputation.
+
+- For the _regression_ imputation, I used the observed values of `BareNuclei` as the dependent variable. The remaining columns became the independent variables. This is a more advanced method, compared to just mean and mode imputations, as it considers the relationship of the dependent and independent variables to impute the missing values [6].
+
+- A drawback of regression imputation is that it does not capture all the variability. _Perturbation_ adds variability [2]. The beginning steps of this method are similar to the regression imputation: build the model and predict the missing values. Then I use the `rnorm` function to add "noise" to mimic natural variation. Finally, I replace the missing values with the predictions and noise.
+
+```{r breast cancer}
+# Library imports
+library(tidyverse)
+library(data.table)
+#install.packages("visdat")
+library(visdat)
+library(ggplot2)
+#install.packages("naniar")
+library(naniar)
+library(GGally) #ggplot2 extension for pairs matrix
+#install.packages("psych")
+library(psych) 
+library(rpart)
+#install.packages("rpart.plot")
+library(rpart.plot)
+
+# Read in data
+df <- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/breast-cancer-wisconsin.data', header=FALSE, stringsAsFactors = FALSE)
+# Preview data
+head(df)
+summary(df)
+
+# Count observations per class
+df %>%
+  count(V11) 
+```
+
+```{r breast cancer - EDA: transform}
+# Copy original df
+df_cleaning <- df
+
+# Rename columns
+df_cleaning <- rename (df_cleaning, 
+                       SampleCode=V1, 
+                       ClumpThickness=V2, 
+                       CellSize=V3, 
+                       CellShape=V4, 
+                       Adhesion=V5, 
+                       SingleEpithelialSize=V6, 
+                       BareNuclei=V7, 
+                       BlandChromatin=V8, 
+                       NormalNucleoli=V9,
+                       Mitoses=V10, 
+                       Diagnosis=V11)
+
+# Convert BareNuclei or V7 column to integer
+df_cleaning$BareNuclei <- as.integer(df_cleaning$BareNuclei)
+
+# Convert Diagnosis or V11 to factor
+df_cleaning$Diagnosis <- as.factor(df_cleaning$Diagnosis)
+
+# Set the levels of the Diagnosis factor to 0 and 1. This effectively assigns new labels to the existing factor levels.
+levels(df_cleaning$Diagnosis) <- c(0, 1)
+
+summary(df_cleaning)
+head(df_cleaning)
+```
+
+```{r breast cancer - EDA: dupes}
+# Dupes check
+n_distinct(df_cleaning)
+
+# Zoom in on the dupes
+duplicates <- df_cleaning %>%
+  filter(duplicated(.))
+
+print(duplicates)
+```
+
+```{r breast cancer - EDA: missing}
+missing_col_summary <- colSums(is.na(df_cleaning))
+print(missing_col_summary)
+
+print(sprintf("Percent of missing observation = %0.3f", 16/nrow(df_cleaning)*100))
+
+# Visualize missing values
+vis_miss(df_cleaning)
+```
+```{r breast cancer - EDA: correlation}
+# Look at reference 4
+# Correlation viz
+df_cleaning_x <- select_if(df_cleaning, is.numeric)
+cor(df_cleaning_x)
+vis_cor(df_cleaning_x)
+
+
+# Change Diagnosis from integer to factor
+df_cleaning$Diagnosis <- as.factor(df_cleaning$Diagnosis)
+
+pairwise <- ggpairs(df_cleaning, columns = 1:10, ggplot2::aes(colour = Diagnosis), lower=list(combo=wrap("facethist", binwidth=0.5)))
+pairwise
+```
+
+```{r breast cancer - EDA: skewness}
+# Look at reference 4
+skew(df_cleaning_x)
+
+
+df_cleaning %>%
+  add_prop_miss() %>%
+  rpart(prop_miss_all ~ ., data=.) %>%
+  prp(type=4, extra = 101, roundint=FALSE, prefix="Prop.Miss = ")
+```
+
+### Imputation - mean/mode
+```{r breast cancer - cleaning: mean imputation}
+#---------------------- Mean imputation
+df_cleaning.mean<-df_cleaning
+df_cleaning.mean<-df_cleaning.mean %>% mutate_at(vars(BareNuclei),~ifelse(is.na(.x), mean(.x, na.rm = TRUE), .x))
+
+# Double check mean imputation
+head(df_cleaning.mean,24)
+```
+```{r breast cancer - cleaning: mode imputation}
+#---------------------- Mode imputation
+# Find mode - look at reference 3
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+df_cleaning.mode<-df_cleaning
+mode.result <- getmode(df_cleaning.mode$BareNuclei)
+print(mode.result)
+
+# Fill NAs with mode of 1s
+df_cleaning.mode$BareNuclei[is.na(df_cleaning.mode$BareNuclei)] <- mode.result
+
+# Double check mode imputation
+head(df_cleaning.mode,24)
+```
+### Imputation - regression
+
+#### Explanation:
+
+1. **Identify Missing Values**:
+   - `missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)`: Finds the indices of missing values in the `BareNuclei` column.
+
+2. **Remove Rows with Missing Values**:
+   - `new_data.1 <- new_data[-missing.index, 2:10]`: Removes rows with missing `BareNuclei` values and considers only columns 2 to 10 for regression.
+
+3. **Fit Regression Model**:
+   - `reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)`: Fits a linear regression model to predict `BareNuclei` based on other variables.
+
+4. **Predict Missing Values**:
+   - `predicted_values <- predict(reg_model, new_data[missing.index, 2:10])`: Uses the fitted model to predict missing `BareNuclei` values.
+
+5. **Impute Predicted Values**:
+   - `new_data$BareNuclei[missing.index] <- predicted_values`: Replaces the missing values in the `BareNuclei` column with the predicted values.
+
+6. **Check Imputation**:
+   - `summary(new_data)`: Provides a summary of the dataframe after imputation to verify the changes.
+
+
+```{r reg}
+# For reproducibility
+set.seed(123)
+
+# Make a copy of the dataframe to preserve the original data
+reg_df <- df_cleaning
+
+# Identify the indices of missing values in the BareNuclei column
+missing.index <- which(is.na(reg_df$BareNuclei), arr.ind=TRUE)
+
+# Remove rows with missing BareNuclei values from the dataframe
+reg_df.1 <- reg_df[-missing.index, 2:10]
+
+# Fit a linear regression model to predict BareNuclei using other columns
+reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + 
+                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = reg_df.1)
+summary(reg_model)
+
+# Use the fitted model to predict missing BareNuclei values
+predicted_values <- predict(reg_model, reg_df[missing.index, 2:10])
+
+# Impute the predicted values back into the original dataframe
+reg_df$BareNuclei[missing.index] <- predicted_values
+
+# Check the dataframe after imputation
+summary(reg_df)
+```
+
+### Imputation - perturbation
+
+#### Explanation:
+
+1. **Calculate Residuals and Noise Level**:
+   - Get residuals from the regression model and calculate the standard deviation to set the noise level.
+
+2. **Add Noise to Predictions**:
+   - Use `rnorm` to add random noise to the predicted values.
+
+3. **Impute Perturbed Values**:
+   - Replace the missing values with these perturbed predictions.
+
+```{r reg with perturbation}
+# For reproducibility
+set.seed(123)
+
+# Make a copy of the dataframe to preserve the original data
+perturbation_df <- df_cleaning
+
+# Identify the indices of missing values in the BareNuclei column
+missing.index <- which(is.na(perturbation_df$BareNuclei), arr.ind=TRUE)
+
+# Remove rows with missing BareNuclei values from the dataframe
+perturbation_df.1 <- perturbation_df[-missing.index, 2:10]
+
+# Fit a linear regression model to predict BareNuclei using other columns
+reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + 
+                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = perturbation_df.1)
+summary(reg_model)
+
+# Use the fitted model to predict missing BareNuclei values
+predicted_values <- predict(reg_model, perturbation_df[missing.index, 2:10])
+
+# Add some random noise (perturbation) to the predicted values
+# Using standard deviation of residuals as noise level
+residuals <- residuals(reg_model)
+noise_level <- sd(residuals)
+perturbed_values <- predicted_values + rnorm(length(predicted_values), mean = 0, sd = noise_level)
+
+# Impute the perturbed values back into the original dataframe
+perturbation_df$BareNuclei[missing.index] <- perturbed_values
+
+# Check the dataframe after imputation
+summary(perturbation_df)
+```
+
+
+
+## Question 15.1
+**Describe a situation or problem from your job, everyday life, current events, etc., for which optimization would be appropriate. What data would you need?**
+
+Optimization is used in descriptive and predictive analytics [1] and there are three parts to it - variables, constraints, and objective function [2]. In November I will be supporting my sister in the NYC Marathon. Applying these three parts to my NYC Marathon cheering strategy, the goal or _objective function_ is to maximize the number of times I can cheer her without missing her. The key _variables_ are the mile markers (where I can stand and cheer). _Constraints_ include traffic, public transportation schedules, and crowd density, which can all affect my adherence to my cheering strategy.
+
+
+
+References:
+
+[1] Lecture 1 slides
+
+[2] Lecture 3 slides
+
+[3] R - Mean, Median and Mode - Tutorialspoint. (2019). Tutorialspoint.com. https://www.tutorialspoint.com/r/r_mean_median_mode.htm
+
+[4] RPubs - Vaar R Notebook: Breast Cancer Wisconsin Original. (2023, August 12). Rpubs.com. https://rpubs.com/bi23le/1070975
+
+[5] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-27. Prompt: ‘Add comments to my lines of code.’ Generated using https://www.microsoft.com.”
+
+[5] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-29. Prompt: ‘Here's my code, read it, understand it, then write a concise explanation the steps in rmd format.’ Generated using https://www.microsoft.com.”
+
+[6] Learn how to fill in missing values for regression analysis using different imputation methods and R. Compare the advantages and disadvantages of each method. (2023, September 27). Linkedin.com. https://www.linkedin.com/advice/0/how-can-you-impute-missing-data-regression-analysis
