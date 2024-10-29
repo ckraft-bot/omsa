@@ -171,22 +171,22 @@ head(df_cleaning.mode,24)
 #### Explanation:
 
 1. **Identify Missing Values**:
-   - `missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)`: Finds the indices of missing values in the `BareNuclei` column.
+   - `missing.index <- which(is.na(reg_df$BareNuclei), arr.ind=TRUE)`: Finds the indices of missing values in the `BareNuclei` column.
 
 2. **Remove Rows with Missing Values**:
-   - `new_data.1 <- new_data[-missing.index, 2:10]`: Removes rows with missing `BareNuclei` values and considers only columns 2 to 10 for regression.
+   - `reg_df.1 <- reg_df[-missing.index, 2:10]`: Removes rows with missing `BareNuclei` values and considers only columns 2 to 10 for regression.
 
 3. **Fit Regression Model**:
-   - `reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)`: Fits a linear regression model to predict `BareNuclei` based on other variables.
+   - `reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = reg_df.1)`: Fits a linear regression model to predict `BareNuclei` based on other variables.
 
 4. **Predict Missing Values**:
-   - `predicted_values <- predict(reg_model, new_data[missing.index, 2:10])`: Uses the fitted model to predict missing `BareNuclei` values.
+   - `predicted_values <- predict(reg_model, reg_df[missing.index, 2:10])`: Uses the fitted model to predict missing `BareNuclei` values.
 
 5. **Impute Predicted Values**:
-   - `new_data$BareNuclei[missing.index] <- predicted_values`: Replaces the missing values in the `BareNuclei` column with the predicted values.
+   - `reg_df$BareNuclei[missing.index] <- predicted_values`: Replaces the missing values in the `BareNuclei` column with the predicted values.
 
 6. **Check Imputation**:
-   - `summary(new_data)`: Provides a summary of the dataframe after imputation to verify the changes.
+   - `summary(reg_df)`: Provides a summary of the dataframe after imputation to verify the changes.
 
 
 ```{r reg}
