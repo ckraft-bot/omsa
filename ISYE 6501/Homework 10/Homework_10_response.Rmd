@@ -166,56 +166,51 @@ head(df_cleaning.mode,24)
 
 #### Explanation:
 
-1. **For reproducibility**:
-   - `set.seed(123)`: This ensures that the results are reproducible by setting the random seed.
+1. **Identify Missing Values**:
+   - `missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)`: Finds the indices of missing values in the `BareNuclei` column.
 
-2. **Make a copy of the dataframe to preserve the original data**:
-   - `new_data <- df_cleaning`: This creates a copy of `df_cleaning` named `new_data`.
+2. **Remove Rows with Missing Values**:
+   - `new_data.1 <- new_data[-missing.index, 2:10]`: Removes rows with missing `BareNuclei` values and considers only columns 2 to 10 for regression.
 
-3. **Identify the indices of missing values in the BareNuclei column**:
-   - `missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)`: This identifies the indices of missing values in the `BareNuclei` column and stores them in `missing.index`.
+3. **Fit Regression Model**:
+   - `reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)`: Fits a linear regression model to predict `BareNuclei` based on other variables.
 
-4. **Remove rows with missing BareNuclei values from the dataframe**:
-   - `new_data.1 <- new_data[-missing.index, 2:10]`: This removes rows with missing `BareNuclei` values from the dataframe `new_data` and considers only columns 2 to 10 for the regression model.
+4. **Predict Missing Values**:
+   - `predicted_values <- predict(reg_model, new_data[missing.index, 2:10])`: Uses the fitted model to predict missing `BareNuclei` values.
 
-5. **Fit a linear regression model to predict BareNuclei using other columns**:
-   - `reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)`: This fits a linear regression model to predict `BareNuclei` based on the other variables.
+5. **Impute Predicted Values**:
+   - `new_data$BareNuclei[missing.index] <- predicted_values`: Replaces the missing values in the `BareNuclei` column with the predicted values.
 
-6. **Use the fitted model to predict missing BareNuclei values**:
-   - `predicted_values <- predict(reg_model, new_data[missing.index, 2:10])`: This uses the fitted model to predict the missing `BareNuclei` values.
+6. **Check Imputation**:
+   - `summary(new_data)`: Provides a summary of the dataframe after imputation to verify the changes.
 
-7. **Impute the predicted values back into the original dataframe**:
-   - `new_data$BareNuclei[missing.index] <- predicted_values`: This replaces the missing values in the `BareNuclei` column with the predicted values.
-
-8. **Check the dataframe after imputation**:
-   - `summary(new_data)`: This provides a summary of the dataframe after imputation to verify the changes.
 
 ```{r reg}
 # For reproducibility
 set.seed(123)
 
 # Make a copy of the dataframe to preserve the original data
-new_data <- df_cleaning
+reg_df <- df_cleaning
 
 # Identify the indices of missing values in the BareNuclei column
-missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)
+missing.index <- which(is.na(reg_df$BareNuclei), arr.ind=TRUE)
 
 # Remove rows with missing BareNuclei values from the dataframe
-new_data.1 <- new_data[-missing.index, 2:10]
+reg_df.1 <- reg_df[-missing.index, 2:10]
 
 # Fit a linear regression model to predict BareNuclei using other columns
 reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + 
-                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)
+                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = reg_df.1)
 summary(reg_model)
 
 # Use the fitted model to predict missing BareNuclei values
-predicted_values <- predict(reg_model, new_data[missing.index, 2:10])
+predicted_values <- predict(reg_model, reg_df[missing.index, 2:10])
 
 # Impute the predicted values back into the original dataframe
-new_data$BareNuclei[missing.index] <- predicted_values
+reg_df$BareNuclei[missing.index] <- predicted_values
 
 # Check the dataframe after imputation
-summary(new_data)
+summary(reg_df)
 ```
 
 ### Imputation - perturbation
@@ -236,21 +231,21 @@ summary(new_data)
 set.seed(123)
 
 # Make a copy of the dataframe to preserve the original data
-new_data <- df_cleaning
+perturbation_df <- df_cleaning
 
 # Identify the indices of missing values in the BareNuclei column
-missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)
+missing.index <- which(is.na(perturbation_df$BareNuclei), arr.ind=TRUE)
 
 # Remove rows with missing BareNuclei values from the dataframe
-new_data.1 <- new_data[-missing.index, 2:10]
+perturbation_df.1 <- perturbation_df[-missing.index, 2:10]
 
 # Fit a linear regression model to predict BareNuclei using other columns
 reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + 
-                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)
+                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = perturbation_df.1)
 summary(reg_model)
 
 # Use the fitted model to predict missing BareNuclei values
-predicted_values <- predict(reg_model, new_data[missing.index, 2:10])
+predicted_values <- predict(reg_model, perturbation_df[missing.index, 2:10])
 
 # Add some random noise (perturbation) to the predicted values
 # Using standard deviation of residuals as noise level
@@ -259,10 +254,10 @@ noise_level <- sd(residuals)
 perturbed_values <- predicted_values + rnorm(length(predicted_values), mean = 0, sd = noise_level)
 
 # Impute the perturbed values back into the original dataframe
-new_data$BareNuclei[missing.index] <- perturbed_values
+perturbation_df$BareNuclei[missing.index] <- perturbed_values
 
 # Check the dataframe after imputation
-summary(new_data)
+summary(perturbation_df)
 ```
 
 
@@ -284,4 +279,7 @@ References:
 
 [4] RPubs - Vaar R Notebook: Breast Cancer Wisconsin Original. (2023, August 12). Rpubs.com. https://rpubs.com/bi23le/1070975
 
-[5] APA citation
+[5] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-27. Prompt: ‘Add comments to my lines of code.’ Generated using https://www.microsoft.com.”
+
+[5] Microsoft. (2024). Copilot: AI companion. Accessed 2024-10-29. Prompt: ‘Here's my code, read it, understand it, then write a concise explanation the steps in rmd format.’ Generated using https://www.microsoft.com.”
+
