@@ -25,7 +25,11 @@ knitr::opts_chunk$set(echo = TRUE)
    **(3) the data set when a binary variable is introduced to indicate missing values.**
 
   
-Went to the description [URL](http://archive.ics.uci.edu/dataset/15/breast+cancer+wisconsin+original) to understand the schema of the table. Column 11 is "Class" and the datatype is binary. If the value is 2 then it's benign and if the value is 4 then it's malignant. According to the aggregation, there 241 malignant and 458 benign cases. There are 691 total missing data points in my dataset. The BareNuclei column has 2.2% of the data (with N of 16) missing. There is a strong correlation between the cell size and shape. After the EDA I imputed the missing values using mean, mode, regression and regression with perturbation.
+Went to the description at [UCI Dataset Description](http://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Original%29) URL to understand the schema of the table. Column 11 is "Class" and the datatype is binary. If the value is 2, it indicates benign, and if the value is 4, it indicates malignant. According to the aggregation results, there are 241 malignant and 458 benign cases. The dataset contains a total of 691 missing data points. Column 7, is later renamed as "BareNuclei", has 2.29% (with N=16) of its data missing. There is a strong correlation between cell size and shape.
+
+After performing exploratory data analysis, I imputed the missing values using mean, mode, regression, and regression with perturbation methods. For mean and mode imputation, I calculated the mean of the BareNuclei column, ignoring the null values, and then replaced the null values with the computations. This was repeated for mode as well. 
+
+
 
 ```{r breast cancer}
 # Library imports
@@ -54,7 +58,7 @@ df %>%
   count(V11) 
 ```
 
-```{r breast cancer - cleaning: transform}
+```{r breast cancer - EDA: transform}
 # Copy original df
 df_cleaning <- df
 
@@ -85,9 +89,9 @@ summary(df_cleaning)
 head(df_cleaning)
 ```
 
-```{r breast cancer - cleaning: dupes}
+```{r breast cancer - EDA: dupes}
 # Dupes check
-n_distinct(df_cleaning) # 691
+n_distinct(df_cleaning)
 
 # Zoom in on the dupes
 duplicates <- df_cleaning %>%
@@ -96,19 +100,16 @@ duplicates <- df_cleaning %>%
 print(duplicates)
 ```
 
-```{r breast cancer - cleaning: missing}
+```{r breast cancer - EDA: missing}
 missing_col_summary <- colSums(is.na(df_cleaning))
 print(missing_col_summary)
-
-# Get a summary of missing values
-miss_var_summary(df_cleaning)
 
 print(sprintf("Percent of missing observation = %0.3f", 16/nrow(df_cleaning)*100))
 
 # Visualize missing values
 vis_miss(df_cleaning)
 ```
-```{r breast cancer - cleaning: correlation}
+```{r breast cancer - EDA: correlation}
 # Look at reference 4
 # Correlation viz
 df_cleaning_x <- select_if(df_cleaning, is.numeric)
@@ -123,7 +124,7 @@ pairwise <- ggpairs(df_cleaning, columns = 1:10, ggplot2::aes(colour = Diagnosis
 pairwise
 ```
 
-```{r breast cancer - cleaning: skewness}
+```{r breast cancer - EDA: skewness}
 # Look at reference 4
 skew(df_cleaning_x)
 
@@ -155,30 +156,113 @@ df_cleaning.mode<-df_cleaning
 mode.result <- getmode(df_cleaning.mode$BareNuclei)
 print(mode.result)
 
-
 # Fill NAs with mode of 1s
 df_cleaning.mode$BareNuclei[is.na(df_cleaning.mode$BareNuclei)] <- mode.result
-#check it was imputed correctly
+
+# Double check mode imputation
 head(df_cleaning.mode,24)
 ```
 ### Imputation - regression
+
+#### Explanation:
+
+1. **For reproducibility**:
+   - `set.seed(123)`: This ensures that the results are reproducible by setting the random seed.
+
+2. **Make a copy of the dataframe to preserve the original data**:
+   - `new_data <- df_cleaning`: This creates a copy of `df_cleaning` named `new_data`.
+
+3. **Identify the indices of missing values in the BareNuclei column**:
+   - `missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)`: This identifies the indices of missing values in the `BareNuclei` column and stores them in `missing.index`.
+
+4. **Remove rows with missing BareNuclei values from the dataframe**:
+   - `new_data.1 <- new_data[-missing.index, 2:10]`: This removes rows with missing `BareNuclei` values from the dataframe `new_data` and considers only columns 2 to 10 for the regression model.
+
+5. **Fit a linear regression model to predict BareNuclei using other columns**:
+   - `reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)`: This fits a linear regression model to predict `BareNuclei` based on the other variables.
+
+6. **Use the fitted model to predict missing BareNuclei values**:
+   - `predicted_values <- predict(reg_model, new_data[missing.index, 2:10])`: This uses the fitted model to predict the missing `BareNuclei` values.
+
+7. **Impute the predicted values back into the original dataframe**:
+   - `new_data$BareNuclei[missing.index] <- predicted_values`: This replaces the missing values in the `BareNuclei` column with the predicted values.
+
+8. **Check the dataframe after imputation**:
+   - `summary(new_data)`: This provides a summary of the dataframe after imputation to verify the changes.
+
 ```{r reg}
+# For reproducibility
 set.seed(123)
 
-new_data<-df_cleaning
-missing.index<-which(is.na(new_data$BareNuclei), arr.ind=TRUE)
-new_data.1 <- new_data[-missing.index,2:10] 
-reg_model <- lm(BareNuclei~ClumpThickness+CellSize+CellShape+Adhesion+SingleEpithelialSize+BlandChromatin+NormalNucleoli+Mitoses,data=new_data.1 )
+# Make a copy of the dataframe to preserve the original data
+new_data <- df_cleaning
+
+# Identify the indices of missing values in the BareNuclei column
+missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)
+
+# Remove rows with missing BareNuclei values from the dataframe
+new_data.1 <- new_data[-missing.index, 2:10]
+
+# Fit a linear regression model to predict BareNuclei using other columns
+reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + 
+                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)
 summary(reg_model)
+
+# Use the fitted model to predict missing BareNuclei values
+predicted_values <- predict(reg_model, new_data[missing.index, 2:10])
+
+# Impute the predicted values back into the original dataframe
+new_data$BareNuclei[missing.index] <- predicted_values
+
+# Check the dataframe after imputation
+summary(new_data)
 ```
 
 ### Imputation - perturbation
+
+#### Explanation:
+
+1. **Calculate Residuals and Noise Level**:
+   - Get residuals from the regression model and calculate the standard deviation to set the noise level.
+
+2. **Add Noise to Predictions**:
+   - Use `rnorm` to add random noise to the predicted values.
+
+3. **Impute Perturbed Values**:
+   - Replace the missing values with these perturbed predictions.
+
 ```{r reg with perturbation}
+# For reproducibility
 set.seed(123)
 
-# code
+# Make a copy of the dataframe to preserve the original data
+new_data <- df_cleaning
 
+# Identify the indices of missing values in the BareNuclei column
+missing.index <- which(is.na(new_data$BareNuclei), arr.ind=TRUE)
 
+# Remove rows with missing BareNuclei values from the dataframe
+new_data.1 <- new_data[-missing.index, 2:10]
+
+# Fit a linear regression model to predict BareNuclei using other columns
+reg_model <- lm(BareNuclei ~ ClumpThickness + CellSize + CellShape + Adhesion + 
+                SingleEpithelialSize + BlandChromatin + NormalNucleoli + Mitoses, data = new_data.1)
+summary(reg_model)
+
+# Use the fitted model to predict missing BareNuclei values
+predicted_values <- predict(reg_model, new_data[missing.index, 2:10])
+
+# Add some random noise (perturbation) to the predicted values
+# Using standard deviation of residuals as noise level
+residuals <- residuals(reg_model)
+noise_level <- sd(residuals)
+perturbed_values <- predicted_values + rnorm(length(predicted_values), mean = 0, sd = noise_level)
+
+# Impute the perturbed values back into the original dataframe
+new_data$BareNuclei[missing.index] <- perturbed_values
+
+# Check the dataframe after imputation
+summary(new_data)
 ```
 
 
